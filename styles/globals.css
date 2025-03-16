@@ -1,0 +1,333 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+.floating-fast {
+  animation: float 4s ease-in-out infinite;
+}
+
+.glass-card {
+  backdrop-filter: blur(16px);
+  background: rgba(45, 79, 92, 0.2);
+  border: 1px solid rgba(167, 232, 208, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(26, 43, 52, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(45, 79, 92, 0.3);
+  border: 1px solid rgba(77, 255, 124, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(77, 255, 124, 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(26, 43, 52, 0.7);
+  border: 1px solid rgba(77, 255, 124, 0.1);
+}
+
+.dark .glass-card:hover {
+  background: rgba(26, 43, 52, 0.8);
+  border: 1px solid rgba(77, 255, 124, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(77, 255, 124, 0.15);
+}
+
+@layer base {
+  :root {
+    /* Light mode - using softer versions of the dark colors */
+    --background: 200 33% 98%; /* Light version of #1a2b34 */
+    --foreground: 200 33% 15%; /* #1a2b34 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 33% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 33% 15%;
+
+    /* Neon green from the image */
+    --primary: 144 100% 65%; /* #4dff7c */
+    --primary-foreground: 200 33% 15%;
+
+    /* Teal from the image */
+    --secondary: 196 27% 73%; /* Lighter version of #2d4f5c */
+    --secondary-foreground: 200 33% 15%;
+
+    --muted: 196 27% 73%;
+    --muted-foreground: 200 33% 40%;
+
+    --accent: 196 27% 73%;
+    --accent-foreground: 200 33% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 196 27% 73%;
+
+    --border: 196 27% 73%;
+    --input: 196 27% 73%;
+    --ring: 144 100% 65%;
+
+    --radius: 1rem;
+
+    /* Dashboard-specific colors */
+    --dashboard-card-bg: rgba(255, 255, 255, 0.7);
+    --dashboard-card-border: rgba(167, 232, 208, 0.2);
+    --dashboard-card-shadow: 0 8px 32px 0 rgba(26, 43, 52, 0.05);
+  }
+
+  .dark {
+    /* Dark mode - exact colors from the image */
+    --background: 200 33% 15%; /* #1a2b34 */
+    --foreground: 166 45% 78%; /* #a7e8d0 */
+
+    --card: 196 27% 27%; /* #2d4f5c */
+    --card-foreground: 166 45% 78%;
+
+    --popover: 196 27% 27%;
+    --popover-foreground: 166 45% 78%;
+
+    --primary: 144 100% 65%; /* #4dff7c */
+    --primary-foreground: 200 33% 15%;
+
+    --secondary: 196 27% 27%; /* #2d4f5c */
+    --secondary-foreground: 166 45% 78%;
+
+    --muted: 196 27% 27%;
+    --muted-foreground: 166 45% 65%;
+
+    --accent: 196 27% 27%;
+    --accent-foreground: 166 45% 78%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 166 45% 78%;
+
+    --border: 196 27% 27%;
+    --input: 196 27% 27%;
+    --ring: 144 100% 65%;
+
+    /* Dashboard-specific colors */
+    --dashboard-card-bg: rgba(26, 43, 52, 0.7);
+    --dashboard-card-border: rgba(77, 255, 124, 0.1);
+    --dashboard-card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Typography scale */
+.text-mega {
+  @apply text-5xl font-bold tracking-tight md:text-7xl;
+}
+
+.text-display {
+  @apply text-4xl font-bold tracking-tight md:text-6xl;
+}
+
+.text-title {
+  @apply text-3xl font-semibold tracking-tight md:text-4xl;
+}
+
+.text-subtitle {
+  @apply text-2xl font-medium md:text-3xl;
+}
+
+.text-heading {
+  @apply text-xl font-medium md:text-2xl;
+}
+
+.text-body {
+  @apply text-base md:text-lg;
+}
+
+.text-small {
+  @apply text-sm md:text-base;
+}
+
+/* Decorative shapes */
+.shape-blob {
+  position: absolute;
+  background: hsl(var(--primary) / 0.1);
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.shape-blob-1 {
+  width: 300px;
+  height: 300px;
+  top: -150px;
+  right: -150px;
+}
+
+.shape-blob-2 {
+  width: 200px;
+  height: 200px;
+  bottom: -100px;
+  left: -100px;
+}
+
+/* Add these new shape blob classes */
+.shape-blob-3 {
+  width: 250px;
+  height: 250px;
+  bottom: 20%;
+  right: 10%;
+  opacity: 0.6;
+}
+
+.shape-blob-4 {
+  width: 180px;
+  height: 180px;
+  top: 30%;
+  left: 15%;
+  opacity: 0.4;
+}
+
+.shape-dots {
+  background-image: radial-gradient(circle, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.shape-lines {
+  background-image: linear-gradient(45deg, hsl(var(--primary) / 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--primary) / 0.1) 25%, transparent 25%);
+  background-size: 20px 20px;
+}
+
+/* Updated glassmorphic effect matching the image */
+.glass {
+  background: rgba(45, 79, 92, 0.2);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(167, 232, 208, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(26, 43, 52, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass:hover {
+  border-color: rgba(77, 255, 124, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(77, 255, 124, 0.1);
+}
+
+.dark .glass {
+  background: rgba(26, 43, 52, 0.7);
+  border-color: rgba(77, 255, 124, 0.1);
+}
+
+.dark .glass:hover {
+  background: rgba(26, 43, 52, 0.8);
+  border-color: rgba(77, 255, 124, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(77, 255, 124, 0.15);
+}
+
+/* Dashboard card styling */
+.dashboard-card {
+  background: var(--dashboard-card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--dashboard-card-border);
+  box-shadow: var(--dashboard-card-shadow);
+  transition: all 0.3s ease;
+  border-radius: 1rem;
+}
+
+.dashboard-card:hover {
+  border-color: rgba(77, 255, 124, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(77, 255, 124, 0.1);
+}
+
+/* Larger sidebar text */
+.sidebar-text {
+  @apply text-lg font-medium;
+}
+
+/* Quote styling */
+.quote {
+  position: relative;
+  padding: 1.5rem;
+  font-style: italic;
+}
+
+.quote::before,
+.quote::after {
+  content: '"';
+  position: absolute;
+  font-size: 3rem;
+  color: hsl(var(--primary));
+  opacity: 0.2;
+  font-family: serif;
+}
+
+.quote::before {
+  top: -0.5rem;
+  left: -0.5rem;
+}
+
+.quote::after {
+  bottom: -2rem;
+  right: -0.5rem;
+}
+
+/* Custom gradient backgrounds */
+.bg-gradient-custom {
+  background: linear-gradient(135deg, #1a2b34 0%, #2d4f5c 100%);
+}
+
+/* Glowing effects */
+.glow {
+  box-shadow: 0 0 15px rgba(77, 255, 124, 0.3);
+}
+
+.glow-text {
+  text-shadow: 0 0 10px rgba(77, 255, 124, 0.3);
+}
+
+/* Input styling */
+.input-custom {
+  background: rgba(45, 79, 92, 0.2);
+  border: 1px solid rgba(167, 232, 208, 0.2);
+  color: #a7e8d0;
+}
+
+.input-custom:focus {
+  border-color: #4dff7c;
+  box-shadow: 0 0 0 2px rgba(77, 255, 124, 0.2);
+}
+
+/* Button styling */
+.button-custom {
+  background: rgba(77, 255, 124, 0.2);
+  border: 1px solid rgba(77, 255, 124, 0.3);
+  color: #4dff7c;
+  transition: all 0.2s ease;
+}
+
+.button-custom:hover {
+  background: rgba(77, 255, 124, 0.3);
+  border-color: rgba(77, 255, 124, 0.4);
+  box-shadow: 0 0 15px rgba(77, 255, 124, 0.2);
+}
+
+/* Dashboard-specific button styling */
+.dashboard-button {
+  @apply bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 hover:border-primary/50 hover:shadow-[0_0_15px_rgba(77,255,124,0.3)] transition-all duration-300;
+}
+
+.dark .dashboard-button {
+  @apply bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40;
+}
+

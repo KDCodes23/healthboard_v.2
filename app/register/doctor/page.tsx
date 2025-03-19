@@ -224,13 +224,13 @@ export default function DoctorRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hospital" className="text-[#a7e8d0] text-sm font-light">
+              <Label htmlFor="hospitalName" className="text-[#a7e8d0] text-sm font-light">
                 Hospital/Clinic
               </Label>
               <div className="relative">
                 <Input
-                  id="hospital"
-                  name="hospital"
+                  id="hospitalName"
+                  name="hospitalName"
                   placeholder="Hospital or clinic name"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -240,12 +240,12 @@ export default function DoctorRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio" className="text-[#a7e8d0] text-sm font-light">
+              <Label htmlFor="professionalBio" className="text-[#a7e8d0] text-sm font-light">
                 Professional Bio
               </Label>
               <Textarea
-                id="bio"
-                name="bio"
+                id="professionalBio"
+                name="professionalBio"
                 placeholder="Brief professional background"
                 className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] min-h-[80px] rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
               />

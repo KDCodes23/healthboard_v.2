@@ -11,6 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Health Horizon",
   description: "Monitor your health metrics and manage your care",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -31,3 +32,6 @@ export default function RootLayout({
   )
 }
 
+
+
+import './globals.css'

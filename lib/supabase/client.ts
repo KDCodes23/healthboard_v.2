@@ -1,7 +1,10 @@
+// This is a placeholder file for Supabase client integration
+// Replace with actual implementation when connecting to Supabase
+
 export function createClient() {
   // Check if environment variables exist, if not use mock client
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.log("Using mock Supabase server client - environment variables not found")
+    console.log("Using mock Supabase client - environment variables not found")
     // Return a mock client for development
     return {
       auth: {
@@ -54,26 +57,10 @@ export function createClient() {
 
   // This code will only run if the environment variables are set
   try {
-    const { createServerClient } = require("@supabase/ssr")
-    const { cookies } = require("next/headers")
-
-    const cookieStore = cookies()
-
-    return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-      cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value
-        },
-        set(name, value, options) {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove(name, options) {
-          cookieStore.set({ name, value: "", ...options })
-        },
-      },
-    })
+    const { createBrowserClient } = require("@supabase/ssr")
+    return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   } catch (error) {
-    console.error("Error creating Supabase server client:", error)
+    console.error("Error creating Supabase client:", error)
     // Fallback to mock client
     return {
       auth: {
@@ -82,10 +69,6 @@ export function createClient() {
         signUp: async () => ({ data: null, error: { message: "Failed to initialize Supabase client" } }),
         signOut: async () => ({ error: null }),
       },
-      from: () => ({
-        insert: async () => ({ error: null }),
-        select: async () => ({ data: [], error: null }),
-      }),
     }
   }
 }

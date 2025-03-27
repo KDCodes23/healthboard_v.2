@@ -14,6 +14,7 @@ import { DoctorAppointments } from "@/components/doctor-appointments"
 import { DoctorPatientList } from "@/components/doctor-patient-list"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PageWrapper } from "@/components/page-wrapper"
+import { MeetingButton } from "@/components/meeting-button"
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
@@ -62,6 +63,7 @@ export default function DoctorDashboard() {
                       className="w-full pl-8 md:w-[200px] lg:w-[300px]"
                     />
                   </div>
+                  <MeetingButton label="Start Consultation" />
                   <ThemeToggle />
                 </div>
               </div>

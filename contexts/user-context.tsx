@@ -1,3 +1,31 @@
+/**
+ * User Context
+ *
+ * This context provides user authentication and profile management functionality.
+ *
+ * BACKEND INTEGRATION NOTES:
+ * -----------------------------
+ * 1. Authentication Flow:
+ *    - Replace localStorage with JWT token management
+ *    - Use HTTP-only cookies for secure token storage
+ *    - Implement refresh token mechanism for longer sessions
+ *
+ * 2. Database Schema:
+ *    - Users table: id, email, role, password_hash, created_at, last_login
+ *    - Patient_profiles: user_id (FK), first_name, last_name, date_of_birth, gender, medical_conditions, avatar_url
+ *    - Doctor_profiles: user_id (FK), first_name, last_name, specialty, hospital, bio, qualifications, avatar_url
+ *    - Appointments: id, patient_id (FK), doctor_id (FK), date_time, status, meeting_link
+ *    - Medical_records: id, patient_id (FK), doctor_id (FK), date, record_type, notes, attachments
+ *
+ * 3. API Endpoints:
+ *    - POST /api/auth/login - Handle user login
+ *    - POST /api/auth/register - Handle user registration
+ *    - GET /api/auth/me - Get current user profile
+ *    - PUT /api/auth/profile - Update user profile
+ *    - POST /api/meetings/create - Create a new virtual meeting
+ *    - GET /api/meetings/:id - Get meeting details
+ */
+
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
@@ -117,6 +145,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
 
+      // BACKEND INTEGRATION:
+      // Replace this with a real authentication API call:
+      // const response = await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email, password, role })
+      // });
+      // const data = await response.json();
+      //
+      // Store the JWT token:
+      // if (data.token) {
+      //   localStorage.setItem('authToken', data.token);
+      // }
+
       const users = getStoredUsers()
       const user = users[email]
 
@@ -195,6 +237,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     try {
       setLoading(true)
+
+      // BACKEND INTEGRATION:
+      // Replace this with an API call like:
+      // const response = await fetch('/api/auth/profile', {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(updates)
+      // });
+      //
+      // If using Supabase:
+      // const { data, error } = await supabase
+      //   .from(user.role === 'patient' ? 'patient_profiles' : 'doctor_profiles')
+      //   .update(updates)
+      //   .eq('user_id', user.id);
+      //
+      // If there's an avatar image upload, use a separate function to handle
+      // the file upload to a storage bucket before updating the profile.
 
       const users = getStoredUsers()
       const currentUser = users[user.email]

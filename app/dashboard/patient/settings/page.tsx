@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { DoctorSidebar } from "@/components/doctor-sidebar"
+import { PatientSidebar } from "@/components/patient-sidebar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,47 +14,72 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PageWrapper } from "@/components/page-wrapper"
 import { useUser } from "@/contexts/user-context"
-import { useToast } from "@/hooks/use-toast" // Fixed import path
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, Save, User } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import { Loader2, Save } from "lucide-react"
+import { ImageUpload } from "@/components/image-upload"
+import { MeetingButton } from "@/components/meeting-button"
+import { ColorblindModeSelector } from "@/components/colorblind-mode-selector"
 
-export default function DoctorSettingsPage() {
+export default function PatientSettingsPage() {
   const { user, updateUserProfile, logout } = useUser()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [colorblindMode, setColorblindMode] = useState("normal")
 
+  // Update the formData state to potentially include the avatar URL
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     email: user?.email || "",
     phone: "",
-    specialty: user?.specialty || "",
-    hospital: user?.hospital || "",
-    bio: "",
-    avatar: user?.avatar || "",
+    medicalConditions: user?.medicalConditions || "",
+    avatar: user?.avatar || "/placeholder.svg?height=40&width=40",
   })
+
+  // Apply colorblind mode CSS variables
+  useEffect(() => {
+    const root = document.documentElement
+
+    switch (colorblindMode) {
+      case "protanopia":
+        root.style.setProperty("--primary", "60 100% 42%") // Yellow-green
+        break
+      case "deuteranopia":
+        root.style.setProperty("--primary", "30 100% 50%") // Orange
+        break
+      case "tritanopia":
+        root.style.setProperty("--primary", "0 100% 71%") // Red
+        break
+      case "achromatopsia":
+        root.style.setProperty("--primary", "0 0% 100%") // White
+        break
+      default:
+        root.style.setProperty("--primary", "144 100% 65%") // Default green
+        break
+    }
+  }, [colorblindMode])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
+  // Update the handleSubmit function to include avatar in the updateUserProfile call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
+      // Include avatar in the update
       await updateUserProfile({
         firstName: formData.firstName,
         lastName: formData.lastName,
-        specialty: formData.specialty,
-        hospital: formData.hospital,
+        medicalConditions: formData.medicalConditions,
+        avatar: formData.avatar,
       })
+
+      // Save colorblind mode preference to localStorage
+      localStorage.setItem("colorblindMode", colorblindMode)
 
       toast({
         title: "Profile updated",
@@ -76,9 +101,17 @@ export default function DoctorSettingsPage() {
     // Redirect will be handled by middleware
   }
 
+  // Load colorblind mode from localStorage on component mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem("colorblindMode")
+    if (savedMode) {
+      setColorblindMode(savedMode)
+    }
+  }, [])
+
   return (
     <SidebarProvider>
-      <DoctorSidebar />
+      <PatientSidebar />
       <SidebarInset>
         <PageWrapper>
           <main className="flex-1 p-4 md:p-6">
@@ -86,10 +119,10 @@ export default function DoctorSettingsPage() {
               {/* Page Header */}
               <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <div className="animate-in">
-                  <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent glow-text">
+                  <h1 className="text-mega bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent glow-text">
                     Settings
                   </h1>
-                  <p className="text-muted-foreground">Manage your account and preferences</p>
+                  <p className="text-body text-muted-foreground">Manage your account and preferences</p>
                 </div>
                 <ThemeToggle />
               </div>
@@ -125,38 +158,34 @@ export default function DoctorSettingsPage() {
                 <TabsContent value="profile" className="space-y-6">
                   <Card className="dashboard-card floating-slow animate-in scale-on-hover">
                     <CardHeader>
-                      <CardTitle>Professional Profile</CardTitle>
-                      <CardDescription>Update your professional information and credentials</CardDescription>
+                      <CardTitle className="text-subtitle">Profile Information</CardTitle>
+                      <CardDescription>Update your personal information and medical details</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Replace the static avatar in the form section with the ImageUpload component */}
                         <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-                          <div className="relative">
-                            <Avatar className="h-24 w-24 hover-glow cursor-pointer transition-all duration-300 hover:ring-2 hover:ring-primary/50">
-                              <AvatarImage
-                                src={formData.avatar || "/placeholder.svg?height=96&width=96"}
-                                alt={formData.firstName}
-                              />
-                              <AvatarFallback className="text-xl">
-                                {formData.firstName?.[0]}
-                                {formData.lastName?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-background hover-glow transition-all duration-300 hover:bg-primary/10"
-                            >
-                              <User className="h-4 w-4" />
-                              <span className="sr-only">Change avatar</span>
-                            </Button>
-                          </div>
+                          {/* Replace the static avatar with the ImageUpload component */}
+                          <ImageUpload
+                            value={formData.avatar}
+                            onChange={(url) => setFormData((prev) => ({ ...prev, avatar: url }))}
+                            disabled={isLoading}
+                            initials={`${formData.firstName?.[0] || ""}${formData.lastName?.[0] || ""}`}
+                          />
                           <div className="space-y-2 text-center sm:text-left">
                             <h3 className="text-lg font-medium shimmer">
-                              Dr. {formData.firstName} {formData.lastName}
+                              {formData.firstName} {formData.lastName}
                             </h3>
                             <p className="text-sm text-muted-foreground">{formData.email}</p>
-                            <p className="text-sm text-muted-foreground">{formData.specialty || "Physician"}</p>
+                            <p className="text-sm text-muted-foreground">Patient</p>
+
+                            {/* Add the Meeting Button */}
+                            <MeetingButton
+                              size="sm"
+                              variant="outline"
+                              className="mt-2"
+                              label="Join Telehealth Meeting"
+                            />
                           </div>
                         </div>
 
@@ -210,49 +239,13 @@ export default function DoctorSettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="specialty">Specialty</Label>
-                          <Select
-                            value={formData.specialty}
-                            onValueChange={(value) => handleSelectChange("specialty", value)}
-                          >
-                            <SelectTrigger className="hover:border-primary focus:border-primary transition-colors duration-300">
-                              <SelectValue placeholder="Select specialty" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="cardiology">Cardiology</SelectItem>
-                              <SelectItem value="dermatology">Dermatology</SelectItem>
-                              <SelectItem value="endocrinology">Endocrinology</SelectItem>
-                              <SelectItem value="gastroenterology">Gastroenterology</SelectItem>
-                              <SelectItem value="neurology">Neurology</SelectItem>
-                              <SelectItem value="oncology">Oncology</SelectItem>
-                              <SelectItem value="pediatrics">Pediatrics</SelectItem>
-                              <SelectItem value="psychiatry">Psychiatry</SelectItem>
-                              <SelectItem value="surgery">Surgery</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="hospital">Hospital/Clinic</Label>
-                          <Input
-                            id="hospital"
-                            name="hospital"
-                            value={formData.hospital}
-                            onChange={handleChange}
-                            placeholder="Hospital or clinic name"
-                            className="hover:border-primary focus:border-primary transition-colors duration-300"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="bio">Professional Bio</Label>
+                          <Label htmlFor="medicalConditions">Medical Conditions</Label>
                           <Textarea
-                            id="bio"
-                            name="bio"
-                            value={formData.bio}
+                            id="medicalConditions"
+                            name="medicalConditions"
+                            value={formData.medicalConditions}
                             onChange={handleChange}
-                            placeholder="Brief professional background and expertise"
+                            placeholder="List any medical conditions, allergies, or important health information"
                             rows={4}
                             className="hover:border-primary focus:border-primary transition-colors duration-300"
                           />
@@ -293,16 +286,40 @@ export default function DoctorSettingsPage() {
                 <TabsContent value="appearance" className="space-y-6">
                   <Card className="dashboard-card floating animate-in scale-on-hover">
                     <CardHeader>
-                      <CardTitle>Appearance</CardTitle>
+                      <CardTitle className="text-subtitle">Appearance</CardTitle>
                       <CardDescription>Customize how the dashboard looks and feels</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         <div className="space-y-2">
                           <Label>Theme</Label>
                           <div className="flex items-center gap-4">
                             <ThemeToggle />
                             <span className="text-sm text-muted-foreground">Switch between light and dark mode</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label>Colorblind Mode</Label>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Select a color scheme optimized for your type of color vision
+                          </p>
+                          <ColorblindModeSelector value={colorblindMode} onChange={setColorblindMode} />
+
+                          <div className="mt-4 flex justify-end">
+                            <Button
+                              onClick={() => {
+                                localStorage.setItem("colorblindMode", colorblindMode)
+                                toast({
+                                  title: "Appearance updated",
+                                  description: "Your color settings have been saved.",
+                                })
+                              }}
+                              className="dashboard-button hover-glow"
+                            >
+                              <Save className="mr-2 h-4 w-4" />
+                              Save Appearance Settings
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -313,20 +330,20 @@ export default function DoctorSettingsPage() {
                 <TabsContent value="notifications" className="space-y-6">
                   <Card className="dashboard-card floating-slow animate-in scale-on-hover">
                     <CardHeader>
-                      <CardTitle>Notification Preferences</CardTitle>
-                      <CardDescription>Manage how you receive notifications and alerts</CardDescription>
+                      <CardTitle className="text-subtitle">Notification Preferences</CardTitle>
+                      <CardDescription>Manage how you receive notifications and reminders</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground mb-4">
-                        Configure how and when you receive notifications about patients, appointments, and updates.
+                        Configure how and when you receive notifications about appointments, medications, and updates.
                       </p>
 
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium">Appointment Notifications</h4>
+                            <h4 className="font-medium">Appointment Reminders</h4>
                             <p className="text-sm text-muted-foreground">
-                              Receive notifications about scheduled appointments
+                              Receive notifications about upcoming appointments
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -344,9 +361,9 @@ export default function DoctorSettingsPage() {
 
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium">Patient Updates</h4>
+                            <h4 className="font-medium">Medication Reminders</h4>
                             <p className="text-sm text-muted-foreground">
-                              Get notified when patients update their information
+                              Get alerts when it's time to take your medication
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -364,9 +381,9 @@ export default function DoctorSettingsPage() {
 
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium">Medical Record Updates</h4>
+                            <h4 className="font-medium">Health Updates</h4>
                             <p className="text-sm text-muted-foreground">
-                              Receive alerts when medical records are updated
+                              Receive updates about your health metrics and goals
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -389,7 +406,7 @@ export default function DoctorSettingsPage() {
                 <TabsContent value="security" className="space-y-6">
                   <Card className="dashboard-card floating animate-in scale-on-hover">
                     <CardHeader>
-                      <CardTitle>Security Settings</CardTitle>
+                      <CardTitle className="text-subtitle">Security Settings</CardTitle>
                       <CardDescription>Manage your password and account security</CardDescription>
                     </CardHeader>
                     <CardContent>

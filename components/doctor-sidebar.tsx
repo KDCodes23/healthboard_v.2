@@ -113,16 +113,18 @@ export function DoctorSidebar() {
       {/* Sidebar Footer with Doctor Profile */}
       <SidebarFooter className="border-t border-border p-4">
         <div className="flex items-center gap-2">
-          <Avatar className="hover-glow cursor-pointer transition-all duration-300 hover:ring-2 hover:ring-primary/50">
-            <AvatarImage
-              src={user?.avatar || "/placeholder.svg?height=32&width=32"}
-              alt={user?.firstName || "Doctor"}
-            />
-            <AvatarFallback>
-              {user?.firstName?.[0]}
-              {user?.lastName?.[0] || "DR"}
-            </AvatarFallback>
-          </Avatar>
+          <Link href="/dashboard/doctor/settings">
+            <Avatar className="hover-glow cursor-pointer transition-all duration-300 hover:ring-2 hover:ring-primary/50">
+              <AvatarImage
+                src={user?.avatar || "/placeholder.svg?height=32&width=32"}
+                alt={user?.firstName || "Doctor"}
+              />
+              <AvatarFallback>
+                {user?.firstName?.[0]}
+                {user?.lastName?.[0] || "DR"}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-1">
             <p className="text-lg font-medium shimmer">
               Dr. {user?.firstName} {user?.lastName || "Sarah Johnson"}

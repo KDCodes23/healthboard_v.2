@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -16,23 +17,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // For development purposes, allow all routes without authentication
-  // In a real app, you would check authentication here
-  return NextResponse.next()
-
-  // Commented out authentication logic for now
-  /*
   try {
+    // Create a Supabase client
+    const supabase = createClient()
+
     // Check if the user is authenticated
-    // For now, we'll just allow all access
-    
-    // In a real app with Supabase, you would check the session here
-    const isAuthenticated = true // Placeholder
-    
-    if (!isAuthenticated) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
       // Redirect to login if not authenticated
       const url = new URL("/login", request.url)
       return NextResponse.redirect(url)
+    }
+
+    // Check if the user is accessing the correct dashboard based on their role
+    const userRole = session.user?.user_metadata?.role
+
+    if (pathname.startsWith("/dashboard/patient") && userRole !== "patient") {
+      // Redirect doctor to doctor dashboard
+      return NextResponse.redirect(new URL("/dashboard/doctor", request.url))
+    }
+
+    if (pathname.startsWith("/dashboard/doctor") && userRole !== "doctor") {
+      // Redirect patient to patient dashboard
+      return NextResponse.redirect(new URL("/dashboard/patient", request.url))
     }
 
     return NextResponse.next()
@@ -41,7 +51,6 @@ export async function middleware(request: NextRequest) {
     // Redirect to login on error
     return NextResponse.redirect(new URL("/login", request.url))
   }
-  */
 }
 
 export const config = {

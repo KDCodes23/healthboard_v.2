@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Activity, Calendar, FileText, Home, Pill, Settings } from "lucide-react"
+import { Activity, Calendar, FileText, Home, MessageSquare, Pill, Settings } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useUser } from "@/contexts/user-context"
 
 /**
  * PatientSidebar Component
@@ -27,6 +28,7 @@ import {
  */
 export function PatientSidebar() {
   const pathname = usePathname()
+  const { user } = useUser()
 
   const navItems = [
     {
@@ -54,6 +56,11 @@ export function PatientSidebar() {
       title: "Medical Records",
       href: "/dashboard/patient/records",
       icon: FileText,
+    },
+    {
+      title: "AI Chat",
+      href: "/dashboard/patient/chat",
+      icon: MessageSquare,
     },
   ]
 
@@ -101,17 +108,27 @@ export function PatientSidebar() {
       <SidebarFooter className="border-t border-border p-4">
         <div className="flex items-center gap-2">
           <Avatar>
-            <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Patient" />
-            <AvatarFallback>JS</AvatarFallback>
+            <AvatarImage
+              src={user?.avatar || "/placeholder.svg?height=32&width=32"}
+              alt={user?.firstName || "Patient"}
+            />
+            <AvatarFallback>
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0] || "JS"}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-lg font-medium">John Smith</p>
+            <p className="text-lg font-medium">
+              {user?.firstName} {user?.lastName || "John Smith"}
+            </p>
             <p className="text-base text-muted-foreground">Patient</p>
           </div>
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
-          </Button>
+          <Link href="/dashboard/patient/settings">
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
+            </Button>
+          </Link>
         </div>
       </SidebarFooter>
     </Sidebar>

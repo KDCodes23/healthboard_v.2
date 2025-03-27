@@ -18,6 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useUser } from "@/contexts/user-context"
 
 /**
  * DoctorSidebar Component
@@ -27,6 +28,7 @@ import {
  */
 export function DoctorSidebar() {
   const pathname = usePathname()
+  const { user } = useUser()
 
   // Navigation items for the doctor sidebar
   const navItems = [
@@ -54,6 +56,11 @@ export function DoctorSidebar() {
     {
       title: "Messages",
       href: "/dashboard/doctor/messages",
+      icon: MessageSquare,
+    },
+    {
+      title: "AI Chat",
+      href: "/dashboard/doctor/chat",
       icon: MessageSquare,
     },
   ]
@@ -105,17 +112,27 @@ export function DoctorSidebar() {
       <SidebarFooter className="border-t border-border p-4">
         <div className="flex items-center gap-2">
           <Avatar>
-            <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Doctor" />
-            <AvatarFallback>DR</AvatarFallback>
+            <AvatarImage
+              src={user?.avatar || "/placeholder.svg?height=32&width=32"}
+              alt={user?.firstName || "Doctor"}
+            />
+            <AvatarFallback>
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0] || "DR"}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-lg font-medium">Dr. Sarah Johnson</p>
-            <p className="text-base text-muted-foreground">Physician</p>
+            <p className="text-lg font-medium">
+              Dr. {user?.firstName} {user?.lastName || "Sarah Johnson"}
+            </p>
+            <p className="text-base text-muted-foreground">{user?.specialty || "Physician"}</p>
           </div>
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
-          </Button>
+          <Link href="/dashboard/doctor/settings">
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
+            </Button>
+          </Link>
         </div>
       </SidebarFooter>
     </Sidebar>

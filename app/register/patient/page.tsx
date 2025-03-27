@@ -11,24 +11,58 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { registerPatient } from "@/lib/actions"
 import { AnimatedBackground } from "@/components/animated-background"
 import { ParticleEffect } from "@/components/particle-effect"
+import { useUser } from "@/contexts/user-context"
 
 export default function PatientRegistrationPage() {
   const router = useRouter()
+  const { register } = useUser()
   const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState("")
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    medicalConditions: "",
+    password: "",
+    confirmPassword: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setFormError("")
 
-    const formData = new FormData(event.currentTarget)
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match")
+      setLoading(false)
+      return
+    }
 
     try {
-      const result = await registerPatient(formData)
+      const result = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        role: "patient",
+        password: formData.password,
+        medicalConditions: formData.medicalConditions,
+      })
 
       if (result.success) {
         router.push("/login?registered=true")
@@ -135,6 +169,8 @@ export default function PatientRegistrationPage() {
                   <Input
                     id="firstName"
                     name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
                     placeholder="First name"
                     required
                     className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -151,6 +187,8 @@ export default function PatientRegistrationPage() {
                   <Input
                     id="lastName"
                     name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
                     placeholder="Last name"
                     required
                     className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -169,6 +207,8 @@ export default function PatientRegistrationPage() {
                   id="email"
                   name="email"
                   type="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="patient@example.com"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -186,6 +226,8 @@ export default function PatientRegistrationPage() {
                   id="phone"
                   name="phone"
                   type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
                   placeholder="(123) 456-7890"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -204,6 +246,8 @@ export default function PatientRegistrationPage() {
                     id="dateOfBirth"
                     name="dateOfBirth"
                     type="date"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
                     required
                     className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
                   />
@@ -215,7 +259,12 @@ export default function PatientRegistrationPage() {
                 <Label htmlFor="gender" className="text-[#a7e8d0] text-sm font-light">
                   Gender
                 </Label>
-                <Select name="gender" required>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => handleSelectChange("gender", value)}
+                  name="gender"
+                  required
+                >
                   <SelectTrigger className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -237,6 +286,8 @@ export default function PatientRegistrationPage() {
                 <Input
                   id="medicalConditions"
                   name="medicalConditions"
+                  value={formData.medicalConditions}
+                  onChange={handleChange}
                   placeholder="E.g., Diabetes, Hypertension"
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
                 />
@@ -253,6 +304,8 @@ export default function PatientRegistrationPage() {
                   id="password"
                   name="password"
                   type="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   required
                   minLength={8}
@@ -271,6 +324,8 @@ export default function PatientRegistrationPage() {
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   required
                   minLength={8}

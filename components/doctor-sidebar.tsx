@@ -75,11 +75,11 @@ export function DoctorSidebar() {
     <Sidebar>
       {/* Sidebar Header with Logo and Title */}
       <SidebarHeader className="border-b border-border p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 hover-glow cursor-pointer">
           <div className="rounded-md bg-primary p-2">
-            <Activity className="h-6 w-6 text-primary-foreground" />
+            <Activity className="h-6 w-6 text-primary-foreground pulse" />
           </div>
-          <div className="text-2xl font-semibold">Health Horizon</div>
+          <div className="text-2xl font-semibold shimmer">Health Horizon</div>
         </div>
       </SidebarHeader>
 
@@ -94,10 +94,12 @@ export function DoctorSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.href, item.exact)}
-                    className="text-lg" // Increased text size
+                    className={`text-lg transition-all duration-300 ${isActive(item.href, item.exact) ? "glow-text" : "hover:translate-x-1"}`}
                   >
                     <Link href={item.href}>
-                      <item.icon className="h-5 w-5" />
+                      <item.icon
+                        className={`h-5 w-5 transition-transform duration-300 ${isActive(item.href, item.exact) ? "text-primary" : "group-hover:scale-110"}`}
+                      />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -111,7 +113,7 @@ export function DoctorSidebar() {
       {/* Sidebar Footer with Doctor Profile */}
       <SidebarFooter className="border-t border-border p-4">
         <div className="flex items-center gap-2">
-          <Avatar>
+          <Avatar className="hover-glow cursor-pointer transition-all duration-300 hover:ring-2 hover:ring-primary/50">
             <AvatarImage
               src={user?.avatar || "/placeholder.svg?height=32&width=32"}
               alt={user?.firstName || "Doctor"}
@@ -122,14 +124,14 @@ export function DoctorSidebar() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-lg font-medium">
+            <p className="text-lg font-medium shimmer">
               Dr. {user?.firstName} {user?.lastName || "Sarah Johnson"}
             </p>
             <p className="text-base text-muted-foreground">{user?.specialty || "Physician"}</p>
           </div>
           <Link href="/dashboard/doctor/settings">
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="hover-glow hover:bg-primary/10 transition-all duration-300">
+              <Settings className="h-5 w-5 transition-transform duration-300 hover:rotate-45" />
               <span className="sr-only">Settings</span>
             </Button>
           </Link>

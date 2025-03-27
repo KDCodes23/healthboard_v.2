@@ -12,26 +12,59 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { registerDoctor } from "@/lib/actions"
-// Import the AnimatedBackground component at the top of the file
 import { AnimatedBackground } from "@/components/animated-background"
-// Import the ParticleEffect component at the top of the file
 import { ParticleEffect } from "@/components/particle-effect"
+import { useUser } from "@/contexts/user-context"
 
 export default function DoctorRegistrationPage() {
   const router = useRouter()
+  const { register } = useUser()
   const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState("")
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    specialty: "",
+    hospital: "",
+    bio: "",
+    password: "",
+    confirmPassword: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setFormError("")
 
-    const formData = new FormData(event.currentTarget)
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match")
+      setLoading(false)
+      return
+    }
 
     try {
-      const result = await registerDoctor(formData)
+      const result = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        role: "doctor",
+        password: formData.password,
+        specialty: formData.specialty,
+        hospital: formData.hospital,
+      })
 
       if (result.success) {
         router.push("/login?registered=true")
@@ -138,6 +171,8 @@ export default function DoctorRegistrationPage() {
                   <Input
                     id="firstName"
                     name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
                     placeholder="First name"
                     required
                     className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -154,6 +189,8 @@ export default function DoctorRegistrationPage() {
                   <Input
                     id="lastName"
                     name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
                     placeholder="Last name"
                     required
                     className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -172,6 +209,8 @@ export default function DoctorRegistrationPage() {
                   id="email"
                   name="email"
                   type="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="doctor@example.com"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -189,6 +228,8 @@ export default function DoctorRegistrationPage() {
                   id="phone"
                   name="phone"
                   type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
                   placeholder="(123) 456-7890"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -202,7 +243,12 @@ export default function DoctorRegistrationPage() {
                 Specialty
               </Label>
               <div className="relative">
-                <Select name="specialty" required>
+                <Select
+                  value={formData.specialty}
+                  onValueChange={(value) => handleSelectChange("specialty", value)}
+                  name="specialty"
+                  required
+                >
                   <SelectTrigger className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
@@ -231,6 +277,8 @@ export default function DoctorRegistrationPage() {
                 <Input
                   id="hospital"
                   name="hospital"
+                  value={formData.hospital}
+                  onChange={handleChange}
                   placeholder="Hospital or clinic name"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -246,6 +294,8 @@ export default function DoctorRegistrationPage() {
               <Textarea
                 id="bio"
                 name="bio"
+                value={formData.bio}
+                onChange={handleChange}
                 placeholder="Brief professional background"
                 className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] min-h-[80px] rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
               />
@@ -260,6 +310,8 @@ export default function DoctorRegistrationPage() {
                   id="password"
                   name="password"
                   type="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   required
                   minLength={8}
@@ -278,6 +330,8 @@ export default function DoctorRegistrationPage() {
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   required
                   minLength={8}

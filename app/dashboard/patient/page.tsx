@@ -41,7 +41,7 @@ export default function PatientDashboard() {
                 <div className="flex items-center gap-2">
                   <ThemeToggle />
                   <Link href="/dashboard/patient/chat">
-                    <Button className="dashboard-button glow-border floating-fast">
+                    <Button className="dashboard-button glow-border floating-fast hover-glow">
                       <MessageSquare className="mr-2 h-4 w-4" />
                       AI Assistant
                     </Button>
@@ -51,17 +51,37 @@ export default function PatientDashboard() {
 
               <Tabs defaultValue="overview" className="space-y-6">
                 <TabsList className="bg-background">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="appointments">Appointments</TabsTrigger>
-                  <TabsTrigger value="medications">Medications</TabsTrigger>
-                  <TabsTrigger value="shop">Shop</TabsTrigger>
+                  <TabsTrigger
+                    value="overview"
+                    className="transition-all duration-300 hover:bg-primary/10 hover:text-primary"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="appointments"
+                    className="transition-all duration-300 hover:bg-primary/10 hover:text-primary"
+                  >
+                    Appointments
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="medications"
+                    className="transition-all duration-300 hover:bg-primary/10 hover:text-primary"
+                  >
+                    Medications
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="shop"
+                    className="transition-all duration-300 hover:bg-primary/10 hover:text-primary"
+                  >
+                    Shop
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
                   {/* Health Metrics Cards */}
                   <div className="grid gap-4 md:grid-cols-2">
                     {/* Steps Today Card */}
-                    <Card className="dashboard-card floating-slow animate-in delay-100">
+                    <Card className="dashboard-card floating-slow animate-in delay-100 scale-on-hover">
                       <CardDecorations variant="minimal" />
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-heading">Steps Today</CardTitle>
@@ -75,7 +95,7 @@ export default function PatientDashboard() {
                     </Card>
 
                     {/* Next Appointment Card */}
-                    <Card className="dashboard-card floating animate-in delay-200">
+                    <Card className="dashboard-card floating animate-in delay-200 scale-on-hover">
                       <CardDecorations variant="lines" />
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-heading">Next Appointment</CardTitle>
@@ -89,7 +109,7 @@ export default function PatientDashboard() {
                           <span>10:30 AM</span>
                         </div>
                         <Link href="/dashboard/patient/appointments" className="mt-4 inline-block">
-                          <Button className="dashboard-button glow-border">View All Appointments</Button>
+                          <Button className="dashboard-button glow-border hover-glow">View All Appointments</Button>
                         </Link>
                       </CardContent>
                     </Card>
@@ -99,7 +119,7 @@ export default function PatientDashboard() {
                   <HealthTips />
 
                   {/* Featured Products Section */}
-                  <Card className="dashboard-card floating-slow animate-in delay-300">
+                  <Card className="dashboard-card floating-slow animate-in delay-300 scale-on-hover">
                     <CardDecorations />
                     <CardHeader>
                       <CardTitle className="text-subtitle">Featured Products</CardTitle>
@@ -111,7 +131,7 @@ export default function PatientDashboard() {
                   </Card>
 
                   {/* Medication Carousel Section */}
-                  <Card className="dashboard-card floating animate-in delay-400">
+                  <Card className="dashboard-card floating animate-in delay-400 scale-on-hover">
                     <CardDecorations variant="minimal" />
                     <CardHeader>
                       <CardTitle className="text-subtitle">Your Medications</CardTitle>
@@ -121,7 +141,7 @@ export default function PatientDashboard() {
                       <MedicationCarousel />
                       <div className="mt-4 text-center">
                         <Link href="/dashboard/patient/medications">
-                          <Button className="dashboard-button glow-border">View All Medications</Button>
+                          <Button className="dashboard-button glow-border hover-glow">View All Medications</Button>
                         </Link>
                       </div>
                     </CardContent>
@@ -133,7 +153,7 @@ export default function PatientDashboard() {
                 </TabsContent>
 
                 <TabsContent value="medications">
-                  <Card className="dashboard-card floating animate-in">
+                  <Card className="dashboard-card floating animate-in scale-on-hover">
                     <CardDecorations />
                     <CardHeader>
                       <CardTitle className="text-subtitle">All Medications</CardTitle>
@@ -146,7 +166,7 @@ export default function PatientDashboard() {
                 </TabsContent>
 
                 <TabsContent value="shop">
-                  <Card className="dashboard-card floating-slow animate-in">
+                  <Card className="dashboard-card floating-slow animate-in scale-on-hover">
                     <CardDecorations variant="lines" />
                     <CardHeader>
                       <CardTitle className="text-subtitle">Medication Shop</CardTitle>

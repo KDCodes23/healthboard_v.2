@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
+  // This is a simplified middleware that only checks if the user is on a dashboard page
+  // The actual authentication is handled client-side in the UserContext
+
   const { pathname } = request.nextUrl
 
   // Skip middleware for public routes
@@ -17,40 +19,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  try {
-    // Create a Supabase client
-    const supabase = createClient()
-
-    // Check if the user is authenticated
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (!session) {
-      // Redirect to login if not authenticated
-      const url = new URL("/login", request.url)
-      return NextResponse.redirect(url)
-    }
-
-    // Check if the user is accessing the correct dashboard based on their role
-    const userRole = session.user?.user_metadata?.role
-
-    if (pathname.startsWith("/dashboard/patient") && userRole !== "patient") {
-      // Redirect doctor to doctor dashboard
-      return NextResponse.redirect(new URL("/dashboard/doctor", request.url))
-    }
-
-    if (pathname.startsWith("/dashboard/doctor") && userRole !== "doctor") {
-      // Redirect patient to patient dashboard
-      return NextResponse.redirect(new URL("/dashboard/patient", request.url))
-    }
-
-    return NextResponse.next()
-  } catch (error) {
-    console.error("Middleware error:", error)
-    // Redirect to login on error
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
+  // For dashboard routes, we'll let the client-side handle authentication
+  // This is just a placeholder middleware
+  return NextResponse.next()
 }
 
 export const config = {

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Mail, Lock } from "lucide-react"
 
@@ -11,32 +11,33 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { login } from "@/lib/actions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-// Import the AnimatedBackground component at the top of the file
 import { AnimatedBackground } from "@/components/animated-background"
-// Import the ParticleEffect component at the top of the file
 import { ParticleEffect } from "@/components/particle-effect"
+import { useUser, type UserRole } from "@/contexts/user-context"
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const { login } = useUser()
   const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState("")
-  const justRegistered = searchParams.get("registered") === "true"
+  const [role, setRole] = useState<UserRole>("patient")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  // Check if user just registered
+  const justRegistered =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("registered") === "true"
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setFormError("")
 
-    const formData = new FormData(event.currentTarget)
-
     try {
-      const result = await login(formData)
+      const result = await login(email, password, role)
 
       if (result.success) {
-        const role = formData.get("role") as string
         router.push(`/dashboard/${role}`)
       } else {
         setFormError(result.error || "Login failed. Please check your credentials.")
@@ -142,7 +143,7 @@ export default function LoginPage() {
               <Label htmlFor="role" className="text-[#a7e8d0] text-lg font-light">
                 Role
               </Label>
-              <Select name="role" required defaultValue="patient">
+              <Select value={role} onValueChange={(value) => setRole(value as UserRole)} name="role" required>
                 <SelectTrigger className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-12 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
@@ -162,6 +163,8 @@ export default function LoginPage() {
                   id="email"
                   name="email"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-12 pl-12 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -179,6 +182,8 @@ export default function LoginPage() {
                   id="password"
                   name="password"
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
                   className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-12 pl-12 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"
@@ -190,7 +195,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-14 mt-8 rounded-full bg-[rgba(45,79,92,0.4)] border border-[#4dff7c]/30 text-[#4dff7c] hover:bg-[rgba(45,79,92,0.6)] hover:border-[#4dff7c]/50 hover:text-[#4dff7c] hover:shadow-[0_0_15px_rgba(77,255,124,0.5)] transition-all duration-300 glow"
+              className="w-full h-14 mt-8 rounded-full bg-[rgba(45,79,92,0.4)] border border-[#4dff7c]/30 text-[#4dff7c] hover:bg-[rgba(45,79,92,0.6)] hover:border-[#4dff7c]/50 hover:text-[#4dff7c] hover:shadow-[0_0_15px_rgba(77,255,124,0.5)] transition-all duration-300 glow hover-glow"
             >
               {loading ? (
                 <div className="animate-spin h-5 w-5 border-2 border-[#4dff7c] border-t-transparent rounded-full" />

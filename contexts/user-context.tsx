@@ -1,11 +1,38 @@
+/**
+ * User Context
+ *
+ * This context provides user authentication and profile management functionality.
+ *
+ * BACKEND INTEGRATION NOTES:
+ * -----------------------------
+ * 1. Authentication Flow:
+ *    - Replace localStorage with JWT token management
+ *    - Use HTTP-only cookies for secure token storage
+ *    - Implement refresh token mechanism for longer sessions
+ *
+ * 2. Database Schema:
+ *    - Users table: id, email, role, password_hash, created_at, last_login
+ *    - Patient_profiles: user_id (FK), first_name, last_name, date_of_birth, gender, medical_conditions, avatar_url
+ *    - Doctor_profiles: user_id (FK), first_name, last_name, specialty, hospital, bio, qualifications, avatar_url
+ *    - Appointments: id, patient_id (FK), doctor_id (FK), date_time, status, meeting_link
+ *    - Medical_records: id, patient_id (FK), doctor_id (FK), date, record_type, notes, attachments
+ *
+ * 3. API Endpoints:
+ *    - POST /api/auth/login - Handle user login
+ *    - POST /api/auth/register - Handle user registration
+ *    - GET /api/auth/me - Get current user profile
+ *    - PUT /api/auth/profile - Update user profile
+ *    - POST /api/meetings/create - Create a new virtual meeting
+ *    - GET /api/meetings/:id - Get meeting details
+ */
+
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { createClient } from "@/lib/supabase/client"
 
-type UserRole = "patient" | "doctor"
+export type UserRole = "patient" | "doctor"
 
-interface UserProfile {
+export interface UserProfile {
   id: string
   email: string
   firstName: string
@@ -21,83 +48,233 @@ interface UserContextType {
   user: UserProfile | null
   loading: boolean
   error: string | null
+  login: (email: string, password: string, role: UserRole) => Promise<{ success: boolean; error?: string }>
+  register: (userData: Partial<UserProfile> & { password: string }) => Promise<{ success: boolean; error?: string }>
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>
   logout: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
+// Mock user database
+const MOCK_USERS_KEY = "health_horizon_users"
+const CURRENT_USER_KEY = "health_horizon_current_user"
+
+// Helper functions for local storage
+const getStoredUsers = (): Record<string, UserProfile & { password: string }> => {
+  if (typeof window === "undefined") return {}
+
+  const stored = localStorage.getItem(MOCK_USERS_KEY)
+  return stored ? JSON.parse(stored) : {}
+}
+
+const storeUsers = (users: Record<string, UserProfile & { password: string }>) => {
+  if (typeof window === "undefined") return
+  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users))
+}
+
+const getCurrentUser = (): UserProfile | null => {
+  if (typeof window === "undefined") return null
+
+  const stored = localStorage.getItem(CURRENT_USER_KEY)
+  return stored ? JSON.parse(stored) : null
+}
+
+const storeCurrentUser = (user: UserProfile | null) => {
+  if (typeof window === "undefined") return
+
+  if (user) {
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user))
+  } else {
+    localStorage.removeItem(CURRENT_USER_KEY)
+  }
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Initialize with demo users if none exist
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase.auth.getSession()
+    const users = getStoredUsers()
 
-        if (error) {
-          throw error
-        }
-
-        if (data.session?.user) {
-          const userData = data.session.user
-          const metadata = userData.user_metadata || {}
-
-          // Create a user profile from the session data
-          const userProfile: UserProfile = {
-            id: userData.id,
-            email: userData.email || "",
-            firstName: metadata.first_name || "",
-            lastName: metadata.last_name || "",
-            role: (metadata.role as UserRole) || "patient",
-            avatar: metadata.avatar_url,
-            specialty: metadata.specialty,
-            hospital: metadata.hospital,
-            medicalConditions: metadata.medical_conditions,
-          }
-
-          setUser(userProfile)
-        }
-      } catch (err) {
-        console.error("Error fetching user:", err)
-        setError("Failed to load user profile")
-      } finally {
-        setLoading(false)
+    if (Object.keys(users).length === 0) {
+      // Add demo users
+      const demoUsers: Record<string, UserProfile & { password: string }> = {
+        "patient@example.com": {
+          id: "patient-1",
+          email: "patient@example.com",
+          firstName: "John",
+          lastName: "Smith",
+          role: "patient",
+          password: "password",
+          medicalConditions: "Hypertension, Mild asthma",
+          avatar: "/placeholder.svg?height=40&width=40",
+        },
+        "doctor@example.com": {
+          id: "doctor-1",
+          email: "doctor@example.com",
+          firstName: "Sarah",
+          lastName: "Johnson",
+          role: "doctor",
+          password: "password",
+          specialty: "Cardiology",
+          hospital: "City General Hospital",
+          avatar: "/placeholder.svg?height=40&width=40",
+        },
       }
+
+      storeUsers(demoUsers)
     }
 
-    fetchUser()
+    // Check for existing session
+    const currentUser = getCurrentUser()
+    if (currentUser) {
+      setUser(currentUser)
+    }
+
+    setLoading(false)
   }, [])
+
+  const login = async (
+    email: string,
+    password: string,
+    role: UserRole,
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setLoading(true)
+
+      // BACKEND INTEGRATION:
+      // Replace this with a real authentication API call:
+      // const response = await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email, password, role })
+      // });
+      // const data = await response.json();
+      //
+      // Store the JWT token:
+      // if (data.token) {
+      //   localStorage.setItem('authToken', data.token);
+      // }
+
+      const users = getStoredUsers()
+      const user = users[email]
+
+      if (!user) {
+        return { success: false, error: "User not found" }
+      }
+
+      if (user.password !== password) {
+        return { success: false, error: "Invalid password" }
+      }
+
+      if (user.role !== role) {
+        return { success: false, error: `Invalid role. You are not registered as a ${role}.` }
+      }
+
+      // Create a user profile without the password
+      const { password: _, ...userProfile } = user
+
+      setUser(userProfile)
+      storeCurrentUser(userProfile)
+
+      return { success: true }
+    } catch (err) {
+      console.error("Login error:", err)
+      return { success: false, error: "An unexpected error occurred" }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const register = async (
+    userData: Partial<UserProfile> & { password: string },
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setLoading(true)
+
+      if (!userData.email || !userData.password || !userData.firstName || !userData.lastName || !userData.role) {
+        return { success: false, error: "Missing required fields" }
+      }
+
+      const users = getStoredUsers()
+
+      if (users[userData.email]) {
+        return { success: false, error: "Email already in use" }
+      }
+
+      // Create new user
+      const newUser: UserProfile & { password: string } = {
+        id: `${userData.role}-${Date.now()}`,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        password: userData.password,
+        specialty: userData.specialty,
+        hospital: userData.hospital,
+        medicalConditions: userData.medicalConditions,
+        avatar: userData.avatar || "/placeholder.svg?height=40&width=40",
+      }
+
+      // Add to users
+      users[userData.email] = newUser
+      storeUsers(users)
+
+      return { success: true }
+    } catch (err) {
+      console.error("Registration error:", err)
+      return { success: false, error: "An unexpected error occurred" }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const updateUserProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return
 
     try {
       setLoading(true)
-      const supabase = createClient()
 
-      // Update user metadata
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          first_name: updates.firstName || user.firstName,
-          last_name: updates.lastName || user.lastName,
-          avatar_url: updates.avatar || user.avatar,
-          specialty: updates.specialty || user.specialty,
-          hospital: updates.hospital || user.hospital,
-          medical_conditions: updates.medicalConditions || user.medicalConditions,
-        },
-      })
+      // BACKEND INTEGRATION:
+      // Replace this with an API call like:
+      // const response = await fetch('/api/auth/profile', {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(updates)
+      // });
+      //
+      // If using Supabase:
+      // const { data, error } = await supabase
+      //   .from(user.role === 'patient' ? 'patient_profiles' : 'doctor_profiles')
+      //   .update(updates)
+      //   .eq('user_id', user.id);
+      //
+      // If there's an avatar image upload, use a separate function to handle
+      // the file upload to a storage bucket before updating the profile.
 
-      if (error) throw error
+      const users = getStoredUsers()
+      const currentUser = users[user.email]
 
-      // Update local state
-      setUser({
-        ...user,
+      if (!currentUser) {
+        throw new Error("User not found")
+      }
+
+      // Update user
+      const updatedUser = {
+        ...currentUser,
         ...updates,
-      })
+      }
+
+      users[user.email] = updatedUser
+      storeUsers(users)
+
+      // Update current user
+      const { password: _, ...userProfile } = updatedUser
+      setUser(userProfile)
+      storeCurrentUser(userProfile)
     } catch (err) {
       console.error("Error updating profile:", err)
       setError("Failed to update profile")
@@ -109,13 +286,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setLoading(true)
-      const supabase = createClient()
-      const { error } = await supabase.auth.signOut()
-
-      if (error) throw error
-
       setUser(null)
-      // Redirect will be handled by the middleware
+      storeCurrentUser(null)
+
+      // Redirect will be handled by the component
+      window.location.href = "/login"
     } catch (err) {
       console.error("Error logging out:", err)
       setError("Failed to log out")
@@ -125,7 +300,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <UserContext.Provider value={{ user, loading, error, updateUserProfile, logout }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, loading, error, login, register, updateUserProfile, logout }}>
+      {children}
+    </UserContext.Provider>
   )
 }
 

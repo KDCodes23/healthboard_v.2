@@ -27,9 +27,9 @@ export default function DoctorRegistrationPage() {
     lastName: "",
     email: "",
     phone: "",
-    specialty: "",
+    specialization: "",
     hospital: "",
-    bio: "",
+    professionalBio: "",
     password: "",
     confirmPassword: "",
   })
@@ -62,8 +62,10 @@ export default function DoctorRegistrationPage() {
         email: formData.email,
         role: "doctor",
         password: formData.password,
-        specialty: formData.specialty,
+        phoneNumber: formData.phone,
+        specialization: formData.specialization,
         hospital: formData.hospital,
+        professionalBio: formData.professionalBio
       })
 
       if (result.success) {
@@ -239,18 +241,18 @@ export default function DoctorRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="specialty" className="text-[#a7e8d0] text-sm font-light">
-                Specialty
+              <Label htmlFor="specialization" className="text-[#a7e8d0] text-sm font-light">
+              specialization
               </Label>
               <div className="relative">
                 <Select
-                  value={formData.specialty}
-                  onValueChange={(value) => handleSelectChange("specialty", value)}
-                  name="specialty"
+                  value={formData.specialization}
+                  onValueChange={(value) => handleSelectChange("specialization", value)}
+                  name="specialization"
                   required
                 >
                   <SelectTrigger className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] h-10 pl-10 rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20">
-                    <SelectValue placeholder="Select specialty" />
+                    <SelectValue placeholder="Select specialization" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#2d4f5c] border-[#a7e8d0]/20 text-[#a7e8d0]">
                     <SelectItem value="cardiology">Cardiology</SelectItem>
@@ -288,13 +290,13 @@ export default function DoctorRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio" className="text-[#a7e8d0] text-sm font-light">
+              <Label htmlFor="professionalBio" className="text-[#a7e8d0] text-sm font-light">
                 Professional Bio
               </Label>
               <Textarea
-                id="bio"
-                name="bio"
-                value={formData.bio}
+                id="professionalBio"
+                name="professionalBio"
+                value={formData.professionalBio}
                 onChange={handleChange}
                 placeholder="Brief professional background"
                 className="bg-[rgba(45,79,92,0.2)] border-[#a7e8d0]/20 text-[#a7e8d0] min-h-[80px] rounded-xl focus:border-[#4dff7c] focus:ring-[#4dff7c]/20"

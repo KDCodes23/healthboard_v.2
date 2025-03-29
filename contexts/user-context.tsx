@@ -38,8 +38,19 @@ export interface UserProfile {
   firstName: string
   lastName: string
   role: UserRole
+  gender?: string // For patients
+  phoneNumber: string
+  dateOfBirth?: string // For patients
+  address?: {
+    street: string
+    city: string
+    provinceOrState: string
+    country: string
+    postalCode: string
+  }
   avatar?: string
-  specialty?: string // For doctors
+  specialization?: string // For doctors
+  professionalBio?: string // For doctors
   hospital?: string // For doctors
   medicalConditions?: string // For patients
 }
@@ -57,85 +68,70 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 // Mock user database
-const MOCK_USERS_KEY = "health_horizon_users"
-const CURRENT_USER_KEY = "health_horizon_current_user"
+// const MOCK_USERS_KEY = "health_horizon_users"
+// const CURRENT_USER_KEY = "health_horizon_current_user"
 
 // Helper functions for local storage
-const getStoredUsers = (): Record<string, UserProfile & { password: string }> => {
-  if (typeof window === "undefined") return {}
+// const getStoredUsers = (): Record<string, UserProfile & { password: string }> => {
+//   if (typeof window === "undefined") return {}
 
-  const stored = localStorage.getItem(MOCK_USERS_KEY)
-  return stored ? JSON.parse(stored) : {}
-}
+//   const stored = localStorage.getItem(MOCK_USERS_KEY)
+//   return stored ? JSON.parse(stored) : {}
+// }
 
-const storeUsers = (users: Record<string, UserProfile & { password: string }>) => {
-  if (typeof window === "undefined") return
-  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users))
-}
+// const storeUsers = (users: Record<string, UserProfile & { password: string }>) => {
+//   if (typeof window === "undefined") return
+//   localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users))
+// }
 
-const getCurrentUser = (): UserProfile | null => {
-  if (typeof window === "undefined") return null
+// const getCurrentUser = (): UserProfile | null => {
+//   if (typeof window === "undefined") return null
 
-  const stored = localStorage.getItem(CURRENT_USER_KEY)
-  return stored ? JSON.parse(stored) : null
-}
+//   const stored = localStorage.getItem(CURRENT_USER_KEY)
+//   return stored ? JSON.parse(stored) : null
+// }
 
-const storeCurrentUser = (user: UserProfile | null) => {
-  if (typeof window === "undefined") return
+// const storeCurrentUser = (user: UserProfile | null) => {
+//   if (typeof window === "undefined") return
 
-  if (user) {
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user))
-  } else {
-    localStorage.removeItem(CURRENT_USER_KEY)
-  }
-}
+//   if (user) {
+//     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user))
+//   } else {
+//     localStorage.removeItem(CURRENT_USER_KEY)
+//   }
+// }
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize with demo users if none exist
   useEffect(() => {
-    const users = getStoredUsers()
+    const fetchUser = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return setLoading(false);
 
-    if (Object.keys(users).length === 0) {
-      // Add demo users
-      const demoUsers: Record<string, UserProfile & { password: string }> = {
-        "patient@example.com": {
-          id: "patient-1",
-          email: "patient@example.com",
-          firstName: "John",
-          lastName: "Smith",
-          role: "patient",
-          password: "password",
-          medicalConditions: "Hypertension, Mild asthma",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        "doctor@example.com": {
-          id: "doctor-1",
-          email: "doctor@example.com",
-          firstName: "Sarah",
-          lastName: "Johnson",
-          role: "doctor",
-          password: "password",
-          specialty: "Cardiology",
-          hospital: "City General Hospital",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user:', err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      storeUsers(demoUsers)
-    }
-
-    // Check for existing session
-    const currentUser = getCurrentUser()
-    if (currentUser) {
-      setUser(currentUser)
-    }
-
-    setLoading(false)
-  }, [])
+    fetchUser();
+  }, []);
 
   const login = async (
     email: string,
@@ -145,49 +141,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
 
-      // BACKEND INTEGRATION:
-      // Replace this with a real authentication API call:
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password, role })
-      // });
-      // const data = await response.json();
-      //
-      // Store the JWT token:
-      // if (data.token) {
-      //   localStorage.setItem('authToken', data.token);
-      // }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/authorize/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Email: email, Password: password, Role: role }),
+      });
 
-      const users = getStoredUsers()
-      const user = users[email]
-
-      if (!user) {
-        return { success: false, error: "User not found" }
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, error: errorData.message || 'Login failed' };
       }
 
-      if (user.password !== password) {
-        return { success: false, error: "Invalid password" }
-      }
+      const data = await response.json();
+      localStorage.setItem('authToken', data.token);
+      setUser(data.user); // Adjust based on your API response structure
+      return { success: true };
 
-      if (user.role !== role) {
-        return { success: false, error: `Invalid role. You are not registered as a ${role}.` }
-      }
-
-      // Create a user profile without the password
-      const { password: _, ...userProfile } = user
-
-      setUser(userProfile)
-      storeCurrentUser(userProfile)
-
-      return { success: true }
     } catch (err) {
-      console.error("Login error:", err)
-      return { success: false, error: "An unexpected error occurred" }
+      return { success: false, error: 'Network error' };
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const register = async (
     userData: Partial<UserProfile> & { password: string },
@@ -199,33 +174,55 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return { success: false, error: "Missing required fields" }
       }
 
-      const users = getStoredUsers()
+      const endpoint = userData.role === 'doctor' ? '/register-doctor' : '/register-patient'
 
-      if (users[userData.email]) {
-        return { success: false, error: "Email already in use" }
+
+      const requestBody = {
+        UserName: userData.email,
+        Email: userData.email,
+        Password: userData.password,
+        [userData.role === 'doctor' ? 'Doctor' : 'Patient']: {
+          FirstName: userData.firstName,
+          LastName: userData.lastName,
+          ...(userData.role === 'patient' && {
+            DateOfBirth: userData.dateOfBirth,
+            PhoneNumber: userData.phoneNumber,
+            Gender: userData.gender,
+            MedicalConditions: userData.medicalConditions,
+            Address: userData.address
+          }),
+          ...(userData.role === 'doctor' && {
+            Specialization: userData.specialization,
+            PhoneNumber: userData.phoneNumber,
+            HospitalName: userData.hospital,
+            ProfessionalBio: userData.professionalBio
+          })
+        }
       }
 
-      // Create new user
-      const newUser: UserProfile & { password: string } = {
-        id: `${userData.role}-${Date.now()}`,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: userData.role,
-        password: userData.password,
-        specialty: userData.specialty,
-        hospital: userData.hospital,
-        medicalConditions: userData.medicalConditions,
-        avatar: userData.avatar || "/placeholder.svg?height=40&width=40",
-      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/authorize${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      })
 
-      // Add to users
-      users[userData.email] = newUser
-      storeUsers(users)
+      const responseText = await response.text(); // Get raw response
+      console.log("Raw API response:", responseText);
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: "Unexpected response from server" };
+        }
+        return { success: false, error: errorData.message || "Registration failed" };
+      }
 
       return { success: true }
     } catch (err) {
       console.error("Registration error:", err)
+
       return { success: false, error: "An unexpected error occurred" }
     } finally {
       setLoading(false)
@@ -238,43 +235,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
 
-      // BACKEND INTEGRATION:
-      // Replace this with an API call like:
-      // const response = await fetch('/api/auth/profile', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(updates)
-      // });
-      //
-      // If using Supabase:
-      // const { data, error } = await supabase
-      //   .from(user.role === 'patient' ? 'patient_profiles' : 'doctor_profiles')
-      //   .update(updates)
-      //   .eq('user_id', user.id);
-      //
-      // If there's an avatar image upload, use a separate function to handle
-      // the file upload to a storage bucket before updating the profile.
+      if (!user) throw new Error("No user to update")
 
-      const users = getStoredUsers()
-      const currentUser = users[user.email]
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          role: user.role,
+          updates: {
+            ...updates,
+            // Include address if updating patient profile
+            ...(user.role === 'patient' && updates.address && { Address: updates.address })
+          }
+        })
+      })
 
-      if (!currentUser) {
-        throw new Error("User not found")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Update failed')
       }
 
-      // Update user
-      const updatedUser = {
-        ...currentUser,
-        ...updates,
-      }
+      const updatedUser = await response.json()
+      setUser(updatedUser)
 
-      users[user.email] = updatedUser
-      storeUsers(users)
-
-      // Update current user
-      const { password: _, ...userProfile } = updatedUser
-      setUser(userProfile)
-      storeCurrentUser(userProfile)
     } catch (err) {
       console.error("Error updating profile:", err)
       setError("Failed to update profile")
@@ -285,12 +271,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      setLoading(true)
-      setUser(null)
-      storeCurrentUser(null)
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
 
-      // Redirect will be handled by the component
+      // Clear client-side data
+      localStorage.removeItem('authToken')
+      setUser(null)
       window.location.href = "/login"
+
     } catch (err) {
       console.error("Error logging out:", err)
       setError("Failed to log out")
@@ -313,4 +306,3 @@ export function useUser() {
   }
   return context
 }
-

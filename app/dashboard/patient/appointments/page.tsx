@@ -5,6 +5,7 @@ import { PatientSidebar } from "@/components/patient-sidebar"
 import { PatientAppointments } from "@/components/patient-appointments"
 import { PageWrapper } from "@/components/page-wrapper"
 
+
 /**
  * PatientAppointmentsPage Component
  *

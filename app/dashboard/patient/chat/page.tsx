@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { PageWrapper } from "@/components/page-wrapper"
 import { useUser } from "@/contexts/user-context"
 
+
 interface Message {
   id: string
   content: string

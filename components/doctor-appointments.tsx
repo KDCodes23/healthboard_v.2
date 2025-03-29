@@ -1,21 +1,97 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarIcon, Check, Clock, MoreHorizontal, X } from "lucide-react"
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Clock, MoreHorizontal, Calendar as CalendarIcon, Check, X } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
+import { DoctorAvailabilityCard } from "@/components/doctor-availabilityCard"
+
+
+const appointments = [
+  {
+    id: 1,
+    patient: "John Smith",
+    avatar: "/placeholder.svg?height=40&width=40",
+    time: "9:00 AM",
+    duration: "30 min",
+    type: "Annual Check-up",
+    status: "Completed",
+    date: new Date("2025-03-29"),
+  },
+  {
+    id: 2,
+    patient: "Emily Johnson",
+    avatar: "/placeholder.svg?height=40&width=40",
+    time: "10:30 AM",
+    duration: "45 min",
+    type: "Follow-up",
+    status: "Completed",
+    date: new Date("2025-03-29"),
+  },
+  {
+    id: 3,
+    patient: "Michael Chen",
+    avatar: "/placeholder.svg?height=40&width=40",
+    time: "1:00 PM",
+    duration: "30 min",
+    type: "Consultation",
+    status: "In Progress",
+    date: new Date("2025-03-29"),
+  },
+  {
+    id: 4,
+    patient: "Sarah Williams",
+    avatar: "/placeholder.svg?height=40&width=40",
+    time: "2:15 PM",
+    duration: "45 min",
+    type: "New Patient",
+    status: "Upcoming",
+    date: new Date("2025-03-29"),
+  },
+  {
+    id: 5,
+    patient: "David Rodriguez",
+    avatar: "/placeholder.svg?height=40&width=40",
+    time: "3:30 PM",
+    duration: "30 min",
+    type: "Lab Results",
+    status: "Upcoming",
+    date: new Date("2025-03-29"),
+  },
+]
+
 
 export function DoctorAppointments() {
   const [date, setDate] = useState<Date | undefined>(new Date())
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
+
+  function setShowFullCalendar(arg0: boolean): void {
+    throw new Error("Function not implemented.")
+  }
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Main schedule card */}
       <Card className="col-span-3 md:col-span-2 dashboard-card floating-slow">
         <CardHeader>
           <CardTitle>Today's Schedule</CardTitle>
@@ -126,6 +202,7 @@ export function DoctorAppointments() {
         </CardContent>
       </Card>
 
+      {/* Calendar card */}
       <Card className="col-span-3 md:col-span-1 dashboard-card floating">
         <CardHeader>
           <CardTitle>Calendar</CardTitle>
@@ -188,11 +265,17 @@ export function DoctorAppointments() {
               </div>
             </div>
 
-            <Button className="mt-2 dashboard-button">View Full Calendar</Button>
+            <Button className="mt-2 dashboard-button" onClick={() => setShowFullCalendar(true)}>View Full Calendar</Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Doctor availability card in the right column */}
+      <div className="col-span-3 md:col-span-1">
+        
+        <DoctorAvailabilityCard />
+        
+      </div>
     </div>
   )
 }
-

@@ -1,189 +1,121 @@
-"use client"
-
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
-import { Send } from "lucide-react"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { PatientSidebar } from "@/components/patient-sidebar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { PageWrapper } from "@/components/page-wrapper"
-import { useUser } from "@/contexts/user-context"
-
+"use client";
+import axios from "axios";
+import { PlaneIcon } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
 
 interface Message {
-  id: string
-  content: string
-  sender: "user" | "ai"
-  timestamp: Date
+  sender: "user" | "ai" | "system";
+  text: string;
 }
 
-export default function PatientChatPage() {
-  const { user } = useUser()
+export default function TalkToAi() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "1",
-      content: "Hello! I'm your Health Horizon AI assistant. How can I help you today?",
       sender: "ai",
-      timestamp: new Date(),
+      text: "Hi, I'm your AI consultant for health needs. How can I assist you today?",
     },
-  ])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    const newMessage: Message = { sender: "user", text: input };
+    setMessages((prev) => [...prev, newMessage]);
+    setInput("");
+    setLoading(true);
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      sender: "user",
-      timestamp: new Date(),
-    }
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsLoading(true)
-
-    // Simulate AI response (replace with actual AI integration later)
-    setTimeout(() => {
-      const aiResponses = [
-        "I understand your concern. Based on your symptoms, it could be a minor issue, but I recommend consulting with your doctor for a proper diagnosis.",
-        "That's a great question about your medication. It's important to take it as prescribed. If you're experiencing side effects, please discuss them with your doctor.",
-        "Your recent test results are within normal ranges. Continue with your current treatment plan and follow up with your doctor as scheduled.",
-        "Regular exercise and a balanced diet are key to managing your condition. Aim for at least 30 minutes of moderate activity most days of the week.",
-        "Sleep is crucial for your recovery. Try to maintain a consistent sleep schedule and create a relaxing bedtime routine.",
-      ]
-
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)]
-
-      const aiMessage: Message = {
-        id: Date.now().toString(),
-        content: randomResponse,
+    try {
+      const response = await axios.post("/api/chat", {
+        message: newMessage.text,
+      });
+      const aiReply = response.data?.response || "No response received.";
+      const aiMessage: Message = { sender: "ai", text: aiReply };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: Message = {
         sender: "ai",
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, aiMessage])
-      setIsLoading(false)
-    }, 1500)
-  }
+        text: "I'm sorry, there was an error processing your request. Please try again later.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <SidebarProvider>
-      <PatientSidebar />
-      <SidebarInset>
-        <PageWrapper>
-          <main className="flex-1 p-4 md:p-6">
-            <div className="mx-auto max-w-4xl">
-              {/* Page Header */}
-              <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-                <div className="animate-in">
-                  <h1 className="text-mega bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent glow-text">
-                    AI Health Assistant
-                  </h1>
-                  <p className="text-body text-muted-foreground">
-                    Ask questions about your health, medications, or treatment plan
-                  </p>
-                </div>
-                <ThemeToggle />
+    <div className="min-h-screen min-w-[100vh] p-20 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+      <div className="max-w-3xl w-full bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-blue-600 text-white px-6 py-4">
+          <h1 className="text-2xl font-semibold">Talk to Your Health Consultant</h1>
+        </div>
+        {/* Chat Messages */}
+        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gray-50">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`relative max-w-md px-5 py-3 rounded-xl shadow ${
+                  msg.sender === "user"
+                    ? "bg-blue-500 text-white rounded-br-none"
+                    : "bg-green-100 text-gray-800 rounded-bl-none"
+                }`}
+              >
+                {msg.text}
+                {/* Optional sender labels */}
+                {msg.sender === "user" && (
+                  <span className="absolute -bottom-2 -right-2 text-xs text-white bg-blue-700 rounded-full px-2 py-1">
+                    You
+                  </span>
+                )}
+                {msg.sender === "ai" && (
+                  <span className="absolute -bottom-2 -left-2 text-xs text-gray-800 bg-green-200 rounded-full px-2 py-1">
+                    AI
+                  </span>
+                )}
               </div>
-
-              {/* Chat Interface */}
-              <Card className="dashboard-card floating-slow animate-in">
-                <CardHeader>
-                  <CardTitle className="text-subtitle">Health Horizon AI</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[60vh] overflow-y-auto mb-4 space-y-4 p-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`flex max-w-[80%] items-start gap-3 ${
-                            message.sender === "user" ? "flex-row-reverse" : ""
-                          }`}
-                        >
-                          <Avatar className={message.sender === "user" ? "bg-primary" : "bg-muted"}>
-                            {message.sender === "user" ? (
-                              <AvatarFallback>
-                                {user?.firstName?.[0]}
-                                {user?.lastName?.[0]}
-                              </AvatarFallback>
-                            ) : (
-                              <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI" />
-                            )}
-                            <AvatarFallback>AI</AvatarFallback>
-                          </Avatar>
-                          <div
-                            className={`rounded-lg p-3 ${
-                              message.sender === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                            }`}
-                          >
-                            <p>{message.content}</p>
-                            <p className="mt-1 text-xs opacity-70">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {isLoading && (
-                      <div className="flex justify-start">
-                        <div className="flex max-w-[80%] items-start gap-3">
-                          <Avatar className="bg-muted">
-                            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI" />
-                            <AvatarFallback>AI</AvatarFallback>
-                          </Avatar>
-                          <div className="rounded-lg bg-muted p-3">
-                            <div className="flex space-x-2">
-                              <div className="h-3 w-3 animate-bounce rounded-full bg-primary/60"></div>
-                              <div className="h-3 w-3 animate-bounce rounded-full bg-primary/60 delay-75"></div>
-                              <div className="h-3 w-3 animate-bounce rounded-full bg-primary/60 delay-150"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <Input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1"
-                      disabled={isLoading}
-                    />
-                    <Button type="submit" className="dashboard-button" disabled={isLoading}>
-                      <Send className="h-4 w-4" />
-                      <span className="sr-only">Send</span>
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
             </div>
-          </main>
-        </PageWrapper>
-      </SidebarInset>
-    </SidebarProvider>
-  )
+          ))}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="max-w-md px-5 py-3 rounded-xl shadow bg-green-100 text-gray-800">
+                Typing...
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        {/* Input Bar */}
+        <div className="border-t border-gray-200 p-4 flex items-center bg-white">
+          <input
+            type="text"
+            placeholder="Type your message..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !loading) handleSend();
+            }}
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading}
+            className="ml-4 p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50 transition-colors"
+          >
+            <PlaneIcon className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
-

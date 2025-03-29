@@ -3,183 +3,127 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
-/**
- * Register a new doctor
- */
-export async function registerDoctor(formData: FormData) {
-  const supabase = createClient()
 
-  // Extract form data
-  const firstName = formData.get("firstName") as string
-  const lastName = formData.get("lastName") as string
-  const email = formData.get("email") as string
-  const phone = formData.get("phone") as string
-  const specialty = formData.get("specialty") as string
-  const hospital = formData.get("hospital") as string
-  const bio = formData.get("bio") as string
-  const password = formData.get("password") as string
-  const confirmPassword = formData.get("confirmPassword") as string
-
-  // Validate passwords match
-  if (password !== confirmPassword) {
-    return { success: false, error: "Passwords do not match" }
-  }
-
-  try {
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          role: "doctor",
-          first_name: firstName,
-          last_name: lastName,
-        },
-      },
-    })
-
-    if (authError) {
-      console.error("Auth error:", authError)
-      return { success: false, error: authError.message }
-    }
-
-    // Create doctor profile in database
-    const { error: profileError } = await supabase.from("doctors").insert({
-      user_id: authData.user?.id,
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      phone,
-      specialty,
-      hospital,
-      bio,
-    })
-
-    if (profileError) {
-      console.error("Profile error:", profileError)
-      return { success: false, error: profileError.message }
-    }
-
-    return { success: true }
-  } catch (error) {
-    console.error("Registration error:", error)
-    return { success: false, error: "An unexpected error occurred" }
-  }
-}
 
 /**
  * Register a new patient
  */
 export async function registerPatient(formData: FormData) {
-  const supabase = createClient()
-
-  // Extract form data
-  const firstName = formData.get("firstName") as string
-  const lastName = formData.get("lastName") as string
-  const email = formData.get("email") as string
-  const phone = formData.get("phone") as string
-  const dateOfBirth = formData.get("dateOfBirth") as string
-  const gender = formData.get("gender") as string
-  const medicalConditions = formData.get("medicalConditions") as string
-  const password = formData.get("password") as string
-  const confirmPassword = formData.get("confirmPassword") as string
-
-  // Validate passwords match
-  if (password !== confirmPassword) {
-    return { success: false, error: "Passwords do not match" }
-  }
-
   try {
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          role: "patient",
-          first_name: firstName,
-          last_name: lastName,
-        },
-      },
-    })
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/authorize/register-patient`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        UserName: formData.get('email'),
+        Email: formData.get('email'),
+        Password: formData.get('password'),
+        Patient: {
+          FirstName: formData.get('firstName'),
+          LastName: formData.get('lastName'),
+          DateOfBirth: formData.get('dateOfBirth'),
+          PhoneNumber: formData.get('phone'),
+          Gender: formData.get('gender'),
+          MedicalConditions: formData.get('medicalConditions'),
+          Address: {
+            Street: formData.get('address.street'),
+            City: formData.get('address.city'),
+            ProvinceOrState: formData.get('address.provinceOrState'),
+            Country: formData.get('address.country'),
+            PostalCode: formData.get('address.postalCode')
+          }
+        }
+      }),
+    });
 
-    if (authError) {
-      console.error("Auth error:", authError)
-      return { success: false, error: authError.message }
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData.errors 
+        ? Object.values(errorData.errors).flat().join(', ') 
+        : errorData.message || 'Registration failed';
+        
+      return { success: false, error: errorMessage };
     }
 
-    // Create patient profile in database
-    const { error: profileError } = await supabase.from("patients").insert({
-      user_id: authData.user?.id,
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      phone,
-      date_of_birth: dateOfBirth,
-      gender,
-      medical_conditions: medicalConditions,
-    })
+    return { success: true };
 
-    if (profileError) {
-      console.error("Profile error:", profileError)
-      return { success: false, error: profileError.message }
-    }
-
-    return { success: true }
   } catch (error) {
-    console.error("Registration error:", error)
-    return { success: false, error: "An unexpected error occurred" }
+    console.error('Registration error:', error);
+    return { success: false, error: 'Network error - Could not reach server' };
   }
 }
+
+/**
+ * Register a new doctor
+ */
+export async function registerDoctor(formData: FormData) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/authorize/register-doctor`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        UserName: formData.get('email'),
+        Email: formData.get('email'),
+        Password: formData.get('password'),
+        Doctor: {
+          FirstName: formData.get('firstName'),
+          LastName: formData.get('lastName'),
+          Specialization: formData.get('specialization'),
+          PhoneNumber: formData.get('phone'),
+          HospitalName: formData.get('hospitalName'),
+          ProfessionalBio: formData.get('professionalBio')
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData.errors 
+        ? Object.values(errorData.errors).flat().join(', ') 
+        : errorData.message || 'Registration failed';
+        
+      return { success: false, error: errorMessage };
+    }
+
+    return { success: true };
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    return { success: false, error: 'Network error - Could not reach server' };
+  }
+}
+
 
 /**
  * Login a user
  */
 export async function login(formData: FormData) {
-  const supabase = createClient()
-
-  // Extract form data
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-  const role = formData.get("role") as string
-
   try {
-    // Sign in with Supabase Auth
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/authorize/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Email: formData.get('email'),
+        Password: formData.get('password'),
+        Role: formData.get('role') // Send role for validation
+      }),
+    });
 
-    if (error) {
-      console.error("Login error:", error)
-      return { success: false, error: error.message }
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData.message 
+        || (errorData.errors ? Object.values(errorData.errors).flat().join(', ') : 'Login failed');
+        
+      return { success: false, error: errorMessage };
     }
 
-    // For mock client, override the role to match what was selected
-    if (data.user && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
-      data.user.user_metadata = {
-        ...data.user.user_metadata,
-        role: role,
-      }
-    }
+    const data = await response.json();
+    localStorage.setItem('authToken', data.token); // Store JWT token
+    
+    return { success: true };
 
-    // Verify user role
-    const userRole = data.user?.user_metadata?.role
-
-    if (userRole !== role) {
-      // Sign out if role doesn't match
-      await supabase.auth.signOut()
-      return { success: false, error: `Invalid role. You are not registered as a ${role}.` }
-    }
-
-    // Revalidate dashboard path
-    revalidatePath(`/dashboard/${role}`)
-
-    return { success: true }
   } catch (error) {
-    console.error("Login error:", error)
-    return { success: false, error: "An unexpected error occurred" }
+    console.error('Login error:', error);
+    return { success: false, error: 'Network error - Could not reach server' };
   }
 }
 

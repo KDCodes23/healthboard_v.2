@@ -84,15 +84,7 @@ export function ImageUpload({ value, onChange, disabled, initials = "U" }: Image
         <span className="sr-only">Change avatar</span>
       </Button>
 
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept="image/*"
-        onChange={handleFileChange}
-        disabled={disabled}
-      />
+     
 
       {/* Controls shown when editing */}
       {isEditing && (

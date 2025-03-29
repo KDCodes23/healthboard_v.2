@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { format } from "date-fns"
-import { CalendarIcon, Clock } from "lucide-react"
+import { CalendarIcon, Clock, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -25,12 +25,74 @@ const timeSlots = [
   "04:30 PM",
 ]
 
+const doctors = [
+  {
+    id: "dr-sarah-johnson",
+    name: "Dr. Sarah Johnson",
+    specialty: "Primary Care Physician",
+    location: "Main Street Medical Center",
+  },
+  {
+    id: "dr-michael-chen",
+    name: "Dr. Michael Chen",
+    specialty: "Cardiologist",
+    location: "Heart Health Clinic",
+  },
+  {
+    id: "dr-emily-rodriguez",
+    name: "Dr. Emily Rodriguez",
+    specialty: "Dermatologist",
+    location: "Skin Care Center",
+  },
+  {
+    id: "dr-james-wilson",
+    name: "Dr. James Wilson",
+    specialty: "Neurologist",
+    location: "Brain & Spine Institute",
+  },
+]
+
 export function AppointmentScheduler() {
+  const [doctor, setDoctor] = useState<String>()
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState<string>()
 
   return (
+    
+    
     <div className="flex flex-col gap-4">
+
+      <div className="flex flex-col gap-4">
+      <label className="text-small font-medium">Select Doctor</label>
+        <Select onValueChange={setDoctor}>
+          <SelectTrigger className="dashboard-button">
+            <SelectValue placeholder="Select doctor">
+              {doctor ? (
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>{doctors.find((d) => d.id === doctor)?.name}</span>
+                </div>
+              ) : (
+                "Select doctor"
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {doctors.map((doc) => (
+              <SelectItem key={doc.id} value={doc.id}>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>{doc.name}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-6">{doc.specialty}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="flex flex-col gap-2">
         <label className="text-small font-medium">Select Date</label>
         <Popover>

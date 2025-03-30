@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Send } from "lucide-react"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -21,6 +20,7 @@ interface Message {
   timestamp: Date
 }
 
+// Emotion and intent detection
 function detectEmotionAndIntent(message: string) {
   const lower = message.toLowerCase()
   const emotionKeywords = {
@@ -57,14 +57,71 @@ function detectEmotionAndIntent(message: string) {
   return { detectedEmotion, detectedIntent }
 }
 
+// Knowledge base with helpful links
+const knowledgeBase: Record<string, { response: string; link: string }> = {
+  sadness: {
+    response:
+      "It sounds like you're going through a tough time. You might find this resource helpful for managing sadness and depression.",
+    link: "https://www.helpguide.org/articles/depression/coping-with-depression.htm",
+  },
+  anxiety: {
+    response:
+      "Anxiety can be really overwhelming. Here's a calming technique and more information on how to manage it.",
+    link: "https://www.verywellmind.com/top-relaxation-techniques-for-anxiety-2584113",
+  },
+  anger: {
+    response:
+      "Managing anger in healthy ways is really important. Check this out for practical tips.",
+    link: "https://www.apa.org/topics/anger/control",
+  },
+  exhaustion: {
+    response:
+      "Feeling drained could be a sign of burnout. Here's a helpful guide on recognizing and coping with it.",
+    link: "https://www.mindtools.com/pages/article/recovering-from-burnout.htm",
+  },
+  loneliness: {
+    response:
+      "You're not alone, even if it feels that way. These tips might help you feel more connected.",
+    link: "https://www.headspace.com/articles/how-to-deal-with-loneliness",
+  },
+  gratitude: {
+    response:
+      "That's lovely to hear. Practicing gratitude has great benefits. Here's more on how to keep that going.",
+    link: "https://greatergood.berkeley.edu/topic/gratitude",
+  },
+}
+
+// Default smart answers for common questions
+const defaultAnswers: Record<string, string> = {
+  "what should i do":
+    "It depends on your situation, but taking small, manageable steps is a good start. Would you like help making a plan?",
+  "how can i feel better":
+    "Sometimes, a short walk, deep breathing, or talking to someone you trust can make a big difference.",
+  "can you help":
+    "Of course! I'm here to support you. Just tell me a little more about what you're going through.",
+  "i feel like giving up":
+    "I'm really sorry you're feeling this way. You're not alone. Would you like me to share some support resources?",
+  "how can i manage anxiety":
+    "Try this breathing exercise: Inhale for 4 seconds, hold for 4, exhale for 4. Here's a guide: https://www.headspace.com/articles/how-to-deal-with-anxiety",
+  "i can't sleep":
+    "Struggling to sleep is tough. You could try a calming bedtime routine, or check this out: https://www.sleepfoundation.org/sleep-hygiene",
+  "i need advice":
+    "Sure—I'm all ears. What specifically would you like advice on?",
+  "i’ve been feeling down lately":
+    "That’s really tough. Do you know what’s been triggering those feelings, or do they come out of nowhere?",
+}
+
 export default function PatientChatPage() {
   const { user } = useUser()
-  const [messages, setMessages] = useState<Message[]>([{
-    id: "1",
-    content: "Hello! I'm your Health Horizon AI assistant. How can I help you today?",
-    sender: "ai",
-    timestamp: new Date(),
-  }])
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      content:
+        "Hello! I'm your Health Horizon AI assistant. How can I help you today?",
+      sender: "ai",
+      timestamp: new Date(),
+    },
+  ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -90,20 +147,19 @@ export default function PatientChatPage() {
 
     const { detectedEmotion, detectedIntent } = detectEmotionAndIntent(input)
 
-    let response = "I'm here for you. Can you tell me more about what's been going on?"
+    let response =
+      "I'm here for you. Can you tell me more about what's been going on?"
+    let link = ""
 
-    if (detectedEmotion === "sadness") {
-      response = "I'm really sorry you're feeling this way. Sometimes talking about it can help. What's been making you feel down lately?"
-    } else if (detectedEmotion === "anxiety") {
-      response = "That sounds overwhelming. Would you like to try a calming technique together?"
-    } else if (detectedEmotion === "anger") {
-      response = "It’s okay to feel angry. Let’s take a deep breath together. What happened that made you feel this way?"
-    } else if (detectedEmotion === "exhaustion") {
-      response = "You sound really drained. Rest is so important. Have you been getting enough sleep or downtime?"
-    } else if (detectedEmotion === "loneliness") {
-      response = "Loneliness can feel really heavy. You’re not alone here. Is there someone you’ve been wanting to reconnect with?"
-    } else if (detectedEmotion === "gratitude") {
-      response = "That’s wonderful to hear. Gratitude can really brighten the day. What are you feeling grateful for?"
+    // Check for default answer match
+    const questionMatch = Object.entries(defaultAnswers).find(([key]) =>
+      input.toLowerCase().includes(key)
+    )
+    if (questionMatch) {
+      response = questionMatch[1]
+    } else if (detectedEmotion && knowledgeBase[detectedEmotion]) {
+      response = knowledgeBase[detectedEmotion].response
+      link = knowledgeBase[detectedEmotion].link
     }
 
     if (detectedIntent === "askingForHelp") {
@@ -112,6 +168,10 @@ export default function PatientChatPage() {
       response += " I'm listening—feel free to let it all out."
     } else if (detectedIntent === "reflective") {
       response += " It's great that you're noticing patterns. Want to unpack that together?"
+    }
+
+    if (link) {
+      response += `\n\nYou can read more here: ${link}`
     }
 
     setTimeout(() => {
@@ -180,7 +240,25 @@ export default function PatientChatPage() {
                                 : "bg-muted"
                             }`}
                           >
-                            <p>{message.content}</p>
+                            <p>
+                              {message.content.split("\n").map((line, index) => (
+                                <span key={index}>
+                                  {line.includes("http") ? (
+                                    <a
+                                      href={line}
+                                      className="text-blue-500 underline"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {line}
+                                    </a>
+                                  ) : (
+                                    line
+                                  )}
+                                  <br />
+                                </span>
+                              ))}
+                            </p>
                             <p className="mt-1 text-xs opacity-70">
                               {message.timestamp.toLocaleTimeString([], {
                                 hour: "2-digit",

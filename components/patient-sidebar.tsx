@@ -58,6 +58,11 @@ export function PatientSidebar() {
       icon: FileText,
     },
     {
+      title: "Chat",
+      href: "/dashboard/patient/doctorchat",
+      icon: MessageSquare,
+    },
+    {
       title: "AI Chat",
       href: "/dashboard/patient/chat",
       icon: MessageSquare,

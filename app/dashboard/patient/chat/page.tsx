@@ -20,7 +20,7 @@ interface Message {
   timestamp: Date
 }
 
-// Emotion and intent detection
+// Emotion and intent detection (optional: send to API to help shape the prompt)
 function detectEmotionAndIntent(message: string) {
   const lower = message.toLowerCase()
   const emotionKeywords = {
@@ -38,7 +38,7 @@ function detectEmotionAndIntent(message: string) {
     reflective: ["i think", "i’ve been", "lately", "recently", "i’ve noticed"],
   }
 
-  let detectedEmotion = null
+  let detectedEmotion: string | null = null
   for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
     if (keywords.some((kw) => lower.includes(kw))) {
       detectedEmotion = emotion
@@ -46,7 +46,7 @@ function detectEmotionAndIntent(message: string) {
     }
   }
 
-  let detectedIntent = null
+  let detectedIntent: string | null = null
   for (const [intent, phrases] of Object.entries(intentKeywords)) {
     if (phrases.some((kw) => lower.includes(kw))) {
       detectedIntent = intent
@@ -55,60 +55,6 @@ function detectEmotionAndIntent(message: string) {
   }
 
   return { detectedEmotion, detectedIntent }
-}
-
-// Knowledge base with helpful links
-const knowledgeBase: Record<string, { response: string; link: string }> = {
-  sadness: {
-    response:
-      "It sounds like you're going through a tough time. You might find this resource helpful for managing sadness and depression.",
-    link: "https://www.helpguide.org/articles/depression/coping-with-depression.htm",
-  },
-  anxiety: {
-    response:
-      "Anxiety can be really overwhelming. Here's a calming technique and more information on how to manage it.",
-    link: "https://www.verywellmind.com/top-relaxation-techniques-for-anxiety-2584113",
-  },
-  anger: {
-    response:
-      "Managing anger in healthy ways is really important. Check this out for practical tips.",
-    link: "https://www.apa.org/topics/anger/control",
-  },
-  exhaustion: {
-    response:
-      "Feeling drained could be a sign of burnout. Here's a helpful guide on recognizing and coping with it.",
-    link: "https://www.mindtools.com/pages/article/recovering-from-burnout.htm",
-  },
-  loneliness: {
-    response:
-      "You're not alone, even if it feels that way. These tips might help you feel more connected.",
-    link: "https://www.headspace.com/articles/how-to-deal-with-loneliness",
-  },
-  gratitude: {
-    response:
-      "That's lovely to hear. Practicing gratitude has great benefits. Here's more on how to keep that going.",
-    link: "https://greatergood.berkeley.edu/topic/gratitude",
-  },
-}
-
-// Default smart answers for common questions
-const defaultAnswers: Record<string, string> = {
-  "what should i do":
-    "It depends on your situation, but taking small, manageable steps is a good start. Would you like help making a plan?",
-  "how can i feel better":
-    "Sometimes, a short walk, deep breathing, or talking to someone you trust can make a big difference.",
-  "can you help":
-    "Of course! I'm here to support you. Just tell me a little more about what you're going through.",
-  "i feel like giving up":
-    "I'm really sorry you're feeling this way. You're not alone. Would you like me to share some support resources?",
-  "how can i manage anxiety":
-    "Try this breathing exercise: Inhale for 4 seconds, hold for 4, exhale for 4. Here's a guide: https://www.headspace.com/articles/how-to-deal-with-anxiety",
-  "i can't sleep":
-    "Struggling to sleep is tough. You could try a calming bedtime routine, or check this out: https://www.sleepfoundation.org/sleep-hygiene",
-  "i need advice":
-    "Sure—I'm all ears. What specifically would you like advice on?",
-  "i’ve been feeling down lately":
-    "That’s really tough. Do you know what’s been triggering those feelings, or do they come out of nowhere?",
 }
 
 export default function PatientChatPage() {
@@ -134,57 +80,53 @@ export default function PatientChatPage() {
     e.preventDefault()
     if (!input.trim()) return
 
+    // Add the user's message to the chat
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
       sender: "user",
       timestamp: new Date(),
     }
-
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
 
+    // Optionally detect emotion and intent
     const { detectedEmotion, detectedIntent } = detectEmotionAndIntent(input)
 
-    let response =
-      "I'm here for you. Can you tell me more about what's been going on?"
-    let link = ""
+    try {
+      // Call your API route to get an AI response
+      const res = await fetch("/api/chat-patient", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: input,
+          emotion: detectedEmotion,
+          intent: detectedIntent,
+        }),
+      })
+      const data = await res.json()
 
-    // Check for default answer match
-    const questionMatch = Object.entries(defaultAnswers).find(([key]) =>
-      input.toLowerCase().includes(key)
-    )
-    if (questionMatch) {
-      response = questionMatch[1]
-    } else if (detectedEmotion && knowledgeBase[detectedEmotion]) {
-      response = knowledgeBase[detectedEmotion].response
-      link = knowledgeBase[detectedEmotion].link
-    }
-
-    if (detectedIntent === "askingForHelp") {
-      response += " I'm here to support you with whatever you're facing."
-    } else if (detectedIntent === "venting") {
-      response += " I'm listening—feel free to let it all out."
-    } else if (detectedIntent === "reflective") {
-      response += " It's great that you're noticing patterns. Want to unpack that together?"
-    }
-
-    if (link) {
-      response += `\n\nYou can read more here: ${link}`
-    }
-
-    setTimeout(() => {
       const aiMessage: Message = {
         id: Date.now().toString(),
-        content: response,
+        content: data.message,
         sender: "ai",
         timestamp: new Date(),
       }
-
       setMessages((prev) => [...prev, aiMessage])
+    } catch (error) {
+      console.error("Error calling OpenAI API:", error)
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content:
+          "I'm having trouble connecting to the support server right now. Please try again later.",
+        sender: "ai",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1500 + Math.random() * 1000)
+    }
   }
 
   return (
@@ -208,28 +150,41 @@ export default function PatientChatPage() {
 
               <Card className="dashboard-card floating-slow animate-in">
                 <CardHeader>
-                  <CardTitle className="text-subtitle">Health Horizon AI</CardTitle>
+                  <CardTitle className="text-subtitle">
+                    Health Horizon AI
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[60vh] overflow-y-auto mb-4 space-y-4 p-4">
                     {messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                        className={`flex ${
+                          message.sender === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
                       >
                         <div
                           className={`flex max-w-[80%] items-start gap-3 ${
                             message.sender === "user" ? "flex-row-reverse" : ""
                           }`}
                         >
-                          <Avatar className={message.sender === "user" ? "bg-primary" : "bg-muted"}>
+                          <Avatar
+                            className={
+                              message.sender === "user" ? "bg-primary" : "bg-muted"
+                            }
+                          >
                             {message.sender === "user" ? (
                               <AvatarFallback>
                                 {user?.firstName?.[0]}
                                 {user?.lastName?.[0]}
                               </AvatarFallback>
                             ) : (
-                              <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI" />
+                              <AvatarImage
+                                src="/placeholder.svg?height=40&width=40"
+                                alt="AI"
+                              />
                             )}
                             <AvatarFallback>AI</AvatarFallback>
                           </Avatar>
@@ -273,7 +228,10 @@ export default function PatientChatPage() {
                       <div className="flex justify-start">
                         <div className="flex max-w-[80%] items-start gap-3">
                           <Avatar className="bg-muted">
-                            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI" />
+                            <AvatarImage
+                              src="/placeholder.svg?height=40&width=40"
+                              alt="AI"
+                            />
                             <AvatarFallback>AI</AvatarFallback>
                           </Avatar>
                           <div className="rounded-lg bg-muted p-3">
@@ -297,7 +255,11 @@ export default function PatientChatPage() {
                       className="flex-1"
                       disabled={isLoading}
                     />
-                    <Button type="submit" className="dashboard-button" disabled={isLoading}>
+                    <Button
+                      type="submit"
+                      className="dashboard-button"
+                      disabled={isLoading}
+                    >
                       <Send className="h-4 w-4" />
                       <span className="sr-only">Send</span>
                     </Button>

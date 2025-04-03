@@ -7,10 +7,23 @@ export async function POST(req: NextRequest) {
 
     // Validate required environment variables
     if (!process.env.OPENAI_API_KEY) {
-      throw new Error("Missing OpenAI API key in environment variables.");
+      return NextResponse.json(
+        { message: "Missing OpenAI API key in environment variables." },
+        { status: 500 }
+      );
     }
 
-    // Prepare the request to OpenAI API
+    // Create a system message that incorporates emotion and intent if provided
+    let systemContent = "You are a helpful medical assistant.";
+    if (emotion || intent) {
+      systemContent += " The user appears to be";
+      if (emotion) systemContent += ` feeling ${emotion}`;
+      if (emotion && intent) systemContent += " and";
+      if (intent) systemContent += ` looking to ${intent}`;
+      systemContent += ".";
+    }
+
+    // Prepare the request to OpenAI API with correct format
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -20,31 +33,36 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are a helpful medical assistant." },
+          { role: "system", content: systemContent },
           { role: "user", content: message },
         ],
-        user_context: {
-          emotion, // Optional field for emotion detection
-          intent,  // Optional field for intent detection
-        },
-        temperature: 0.7, // Adjust temperature for response creativity
+        temperature: 0.7,
       }),
     });
 
-    const json = await response.json();
-
-    // Handle errors from OpenAI API
+    // Handle non-200 responses
     if (!response.ok) {
-      console.error("Error response from OpenAI:", json);
-      throw new Error(
-        `OpenAI API error: ${json.error?.message || "Unknown error"}`
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Error response from OpenAI:", errorData);
+      return NextResponse.json(
+        { 
+          message: "Error from OpenAI API", 
+          details: errorData.error?.message || "Unknown error" 
+        },
+        { status: response.status }
       );
     }
+
+    // Parse response
+    const json = await response.json();
 
     // Validate response structure
     if (!json.choices || json.choices.length === 0) {
       console.error("Unexpected response structure:", json);
-      throw new Error("No choices returned from OpenAI API.");
+      return NextResponse.json(
+        { message: "Invalid response format from OpenAI API" },
+        { status: 500 }
+      );
     }
 
     // Extract AI reply from the response
@@ -54,7 +72,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error in /api/chat-patient:", error);
     return NextResponse.json(
-      { message: "Error fetching AI response" },
+      { 
+        message: "Error processing request",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }

@@ -4,6 +4,19 @@ export async function POST(req: NextRequest) {
   try {
     // Parse the incoming request body
     const { message, emotion, intent } = await req.json();
+    const lowerMessage = message.toLowerCase();
+
+    // Check if the user is asking for links or references
+    if (lowerMessage.includes("link") || lowerMessage.includes("reference")) {
+      const curatedLinks = `
+Here are some reputable resources:
+• Mayo Clinic: https://www.mayoclinic.org
+• CDC: https://www.cdc.gov
+• MedlinePlus: https://medlineplus.gov
+• WebMD: https://www.webmd.com
+      `;
+      return NextResponse.json({ message: curatedLinks });
+    }
 
     // Validate required environment variables
     if (!process.env.OPENAI_API_KEY) {
@@ -70,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: aiReply });
   } catch (error) {
-    console.error("Error in /api/chat-patient:", error);
+    console.error("Error in /api/chat-doctor:", error);
     return NextResponse.json(
       { 
         message: "Error processing request",

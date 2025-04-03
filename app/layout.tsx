@@ -10,8 +10,12 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Health Horizon",
   description: "Monitor your health metrics and manage your care",
-    generator: 'v0.dev'
-}
+  generator: "v0.dev",
+  icons: {
+    icon: "/Icon.ico",
+  },
+  
+};
 
 export default function RootLayout({
   children,

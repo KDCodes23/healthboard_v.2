@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Send } from "lucide-react"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -21,6 +20,43 @@ interface Message {
   timestamp: Date
 }
 
+// Optional: Emotion and intent detection (can be customized as needed)
+function detectEmotionAndIntent(message: string) {
+  const lower = message.toLowerCase()
+  const emotionKeywords = {
+    sadness: ["sad", "depressed", "empty", "hopeless", "worthless"],
+    anxiety: ["anxious", "worried", "panic", "nervous", "overwhelmed"],
+    anger: ["angry", "mad", "frustrated", "irritated", "pissed"],
+    exhaustion: ["tired", "exhausted", "drained", "burned out", "fatigued"],
+    loneliness: ["lonely", "alone", "isolated", "ignored", "left out"],
+    gratitude: ["thankful", "grateful", "appreciate", "blessed", "happy"],
+  }
+
+  const intentKeywords = {
+    askingForHelp: ["what should i do", "how can i", "can you help", "need advice"],
+    venting: ["i just", "i feel like", "i hate", "i can’t", "i don’t know why"],
+    reflective: ["i think", "i’ve been", "lately", "recently", "i’ve noticed"],
+  }
+
+  let detectedEmotion: string | null = null
+  for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      detectedEmotion = emotion
+      break
+    }
+  }
+
+  let detectedIntent: string | null = null
+  for (const [intent, phrases] of Object.entries(intentKeywords)) {
+    if (phrases.some((kw) => lower.includes(kw))) {
+      detectedIntent = intent
+      break
+    }
+  }
+
+  return { detectedEmotion, detectedIntent }
+}
+
 export default function DoctorChatPage() {
   const { user } = useUser()
   const [messages, setMessages] = useState<Message[]>([
@@ -38,7 +74,7 @@ export default function DoctorChatPage() {
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to the bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
@@ -47,7 +83,7 @@ export default function DoctorChatPage() {
     e.preventDefault()
     if (!input.trim()) return
 
-    // Add user message
+    // Add the doctor's message to the chat
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
@@ -58,28 +94,42 @@ export default function DoctorChatPage() {
     setInput("")
     setIsLoading(true)
 
-    // Simulate AI response (replace with actual AI integration later)
-    setTimeout(() => {
-      const aiResponses = [
-        "Based on the patient's symptoms and test results, I would recommend considering a change in medication. The current treatment doesn't seem to be addressing the underlying inflammation.",
-        "The latest research suggests that this approach has shown promising results for similar cases. I can provide you with the relevant studies if you'd like to review them.",
-        "For this particular condition, a combination therapy might be more effective. Consider adding physical therapy to the treatment plan.",
-        "The patient's history indicates a potential drug interaction. It might be worth reviewing their current medication regimen.",
-        "This presentation is consistent with early signs of the condition. Early intervention with the standard protocol would be advisable.",
-      ]
+    // Optionally detect emotion and intent from the input
+    const { detectedEmotion, detectedIntent } = detectEmotionAndIntent(input)
 
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)]
+    try {
+      // Call your API route to get an AI response for the doctor
+      const res = await fetch("/api/chat-doctor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: input,
+          emotion: detectedEmotion,
+          intent: detectedIntent,
+        }),
+      })
+      const data = await res.json()
 
       const aiMessage: Message = {
         id: Date.now().toString(),
-        content: randomResponse,
+        content: data.message,
         sender: "ai",
         timestamp: new Date(),
       }
-
       setMessages((prev) => [...prev, aiMessage])
+    } catch (error) {
+      console.error("Error calling OpenAI API:", error)
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content:
+          "I'm having trouble connecting to the support server right now. Please try again later.",
+        sender: "ai",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   return (
@@ -92,11 +142,11 @@ export default function DoctorChatPage() {
               {/* Page Header */}
               <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <div className="animate-in">
-                  <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent glow-text">
+                  <h1 className="text-mega bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent glow-text">
                     Medical AI Assistant
                   </h1>
-                  <p className="text-muted-foreground">
-                    Get insights on diagnoses, treatments, and the latest medical research
+                  <p className="text-body text-muted-foreground">
+                    Get insights on diagnoses, treatments, and the latest medical research.
                   </p>
                 </div>
                 <ThemeToggle />
@@ -112,7 +162,9 @@ export default function DoctorChatPage() {
                     {messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                        className={`flex ${
+                          message.sender === "user" ? "justify-end" : "justify-start"
+                        }`}
                       >
                         <div
                           className={`flex max-w-[80%] items-start gap-3 ${
@@ -188,4 +240,3 @@ export default function DoctorChatPage() {
     </SidebarProvider>
   )
 }
-

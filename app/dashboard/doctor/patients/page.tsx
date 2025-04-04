@@ -6,6 +6,7 @@ import { DoctorPatientList } from "@/components/doctor-patient-list"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PageWrapper } from "@/components/page-wrapper"
 
+
 /**
  * DoctorPatientsPage Component
  *
@@ -19,9 +20,10 @@ export default function DoctorPatientsPage() {
       <DoctorSidebar />
 
       {/* Main Content Area */}
+      
       <SidebarInset>
         <PageWrapper>
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 p-4 md:p-6 ">
             <div className="mx-auto max-w-7xl">
               {/* Page Header */}
               <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
@@ -30,7 +32,11 @@ export default function DoctorPatientsPage() {
                 </h1>
                 <ThemeToggle />
               </div>
-              <DoctorPatientList />
+              
+              {/* Glass Card Wrapper */}
+              <div className="glass-card rounded-lg p-6 floating-slow">
+                <DoctorPatientList />
+              </div>
             </div>
           </main>
         </PageWrapper>
@@ -38,4 +44,3 @@ export default function DoctorPatientsPage() {
     </SidebarProvider>
   )
 }
-

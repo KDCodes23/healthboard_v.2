@@ -63,7 +63,7 @@ export default function DoctorDashboard() {
                       className="w-full pl-8 md:w-[200px] lg:w-[300px]"
                     />
                   </div>
-                  <MeetingButton label="Start Consultation" />
+                  <MeetingButton />
                   <ThemeToggle />
                 </div>
               </div>

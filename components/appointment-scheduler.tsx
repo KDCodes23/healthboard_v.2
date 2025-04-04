@@ -27,8 +27,8 @@ interface AppointmentSchedulerProps {
 }
 
 const doctors = [
-  { id: "dr-sarah-johnson", name: "Dr. Sarah Johnson", specialty: "Primary Care Physician", location: "Main Street Medical Center" },
-  { id: "dr-michael-chen", name: "Dr. Michael Chen", specialty: "Cardiologist", location: "Heart Health Clinic" },
+  { id: "dr-will-smith", name: "Dr. Will Smith", specialty: "Dermatologist", location: "Main Street Medical Center" },
+  { id: "dr-michael-white", name: "Dr. Michael White", specialty: "Cardiologist", location: "Heart Health Clinic" },
   { id: "dr-emily-rodriguez", name: "Dr. Emily Rodriguez", specialty: "Dermatologist", location: "Skin Care Center" },
   { id: "dr-james-wilson", name: "Dr. James Wilson", specialty: "Neurologist", location: "Brain & Spine Institute" },
 ]

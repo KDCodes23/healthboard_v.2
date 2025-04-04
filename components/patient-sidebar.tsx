@@ -128,7 +128,7 @@ export function PatientSidebar() {
           </Link>
           <div className="flex-1">
             <p className="text-lg font-medium shimmer">
-              {user?.firstName} {user?.lastName || "John Smith"}
+              {user?.firstName} {user?.lastName || "Aleksandr Ainidinov"}
             </p>
             <p className="text-base text-muted-foreground">Patient</p>
           </div>

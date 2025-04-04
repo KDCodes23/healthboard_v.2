@@ -127,9 +127,9 @@ export function DoctorSidebar() {
           </Link>
           <div className="flex-1">
             <p className="text-lg font-medium shimmer">
-              Dr. {user?.firstName} {user?.lastName || "Sarah Johnson"}
+              Dr. {user?.firstName} {user?.lastName || "Will Smith"}
             </p>
-            <p className="text-base text-muted-foreground">{user?.specialty || "Physician"}</p>
+            <p className="text-base text-muted-foreground">Dermatologist</p>
           </div>
           <Link href="/dashboard/doctor/settings">
             <Button variant="ghost" size="icon" className="hover-glow hover:bg-primary/10 transition-all duration-300">

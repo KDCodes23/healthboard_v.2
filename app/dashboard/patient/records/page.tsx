@@ -20,10 +20,10 @@ export default function PatientRecordsPage() {
   const medicalRecords = [
     {
       title: "Annual Physical Results",
-      description: "Dr. Sarah Johnson • May 10, 2024",
-      date: "May 10, 2024",
-      doctor: "Dr. Sarah Johnson",
-      type: "Physical Examination",
+      description: "Dr. Will Smith • January 10, 2025",
+      date: "January 10, 2025",
+      doctor: "Dr. Will Smith",
+      type: "Dermatology Examination",
       src: "/placeholder.svg?height=300&width=500",
       ctaText: "View Report",
       ctaLink: "https://example.com/records/physical-2024",
@@ -49,9 +49,9 @@ export default function PatientRecordsPage() {
     },
     {
       title: "Blood Test Results",
-      description: "Dr. Michael Chen • April 15, 2024",
-      date: "April 15, 2024",
-      doctor: "Dr. Michael Chen",
+      description: "Dr. John Chen • November 12, 2024",
+      date: "Nov 12, 2024",
+      doctor: "Dr. John Chen",
       type: "Laboratory",
       src: "/placeholder.svg?height=300&width=500",
       ctaText: "View Results",
@@ -78,8 +78,8 @@ export default function PatientRecordsPage() {
     },
     {
       title: "Vaccination Record",
-      description: "Dr. Emily Rodriguez • March 22, 2024",
-      date: "March 22, 2024",
+      description: "Dr. Emily Rodriguez • October 22, 2024",
+      date: "October 22, 2024",
       doctor: "Dr. Emily Rodriguez",
       type: "Immunization",
       src: "/placeholder.svg?height=300&width=500",
@@ -106,8 +106,8 @@ export default function PatientRecordsPage() {
     },
     {
       title: "Allergy Test Results",
-      description: "Dr. Sarah Johnson • February 8, 2024",
-      date: "February 8, 2024",
+      description: "Dr. Sarah Johnson • May 8, 2024",
+      date: "May 8, 2024",
       doctor: "Dr. Sarah Johnson",
       type: "Laboratory",
       src: "/placeholder.svg?height=300&width=500",
@@ -134,9 +134,9 @@ export default function PatientRecordsPage() {
     },
     {
       title: "X-Ray Results",
-      description: "Dr. Michael Chen • January 12, 2024",
-      date: "January 12, 2024",
-      doctor: "Dr. Michael Chen",
+      description: "Dr. Ruby Singh • January 12, 2023",
+      date: "January 12, 2023",
+      doctor: "Dr. Ruby Singh",
       type: "Radiology",
       src: "/placeholder.svg?height=300&width=500",
       ctaText: "View Images",
@@ -160,35 +160,35 @@ export default function PatientRecordsPage() {
         </div>
       ),
     },
-    {
-      title: "Cardiology Report",
-      description: "Dr. Robert Thompson • December 5, 2023",
-      date: "December 5, 2023",
-      doctor: "Dr. Robert Thompson",
-      type: "Cardiology",
-      src: "/placeholder.svg?height=300&width=500",
-      ctaText: "View Report",
-      ctaLink: "https://example.com/records/cardiology-2023",
-      content: () => (
-        <div>
-          <h4 className="text-lg font-semibold mb-2">Cardiology Consultation</h4>
-          <p className="mb-2">
-            ECG shows normal sinus rhythm with no significant ST-T wave changes. Echocardiogram reveals normal left
-            ventricular function with ejection fraction of 60%.
-          </p>
-          <p className="mb-2">
-            Stress test results within normal limits. No evidence of ischemia or arrhythmia during exercise. Continue
-            current medication regimen.
-          </p>
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" size="sm" className="dashboard-button">
-              <Download className="mr-2 h-4 w-4" />
-              Download Report
-            </Button>
-          </div>
-        </div>
-      ),
-    },
+    // {
+    //   title: "Cardiology Report",
+    //   description: "Dr. Robert Thompson • December 5, 2023",
+    //   date: "December 5, 2023",
+    //   doctor: "Dr. Robert Thompson",
+    //   type: "Cardiology",
+    //   src: "/placeholder.svg?height=300&width=500",
+    //   ctaText: "View Report",
+    //   ctaLink: "https://example.com/records/cardiology-2023",
+    //   content: () => (
+    //     <div>
+    //       <h4 className="text-lg font-semibold mb-2">Cardiology Consultation</h4>
+    //       <p className="mb-2">
+    //         ECG shows normal sinus rhythm with no significant ST-T wave changes. Echocardiogram reveals normal left
+    //         ventricular function with ejection fraction of 60%.
+    //       </p>
+    //       <p className="mb-2">
+    //         Stress test results within normal limits. No evidence of ischemia or arrhythmia during exercise. Continue
+    //         current medication regimen.
+    //       </p>
+    //       <div className="flex gap-2 mt-4">
+    //         <Button variant="outline" size="sm" className="dashboard-button">
+    //           <Download className="mr-2 h-4 w-4" />
+    //           Download Report
+    //         </Button>
+    //       </div>
+    //     </div>
+    //   ),
+    // },
   ]
 
   return (

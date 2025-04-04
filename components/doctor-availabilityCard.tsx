@@ -55,11 +55,6 @@ export function DoctorAvailabilityCard() {
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("17:00");
   const [isRecurring, setIsRecurring] = useState(false);
-
-  useEffect(() => {
-    console.log("Toast triggered!");
-    toast.success("This is a test toast!"); // Toast message should appear here
-  }, []);
   
   const daysOfWeek = [
     "Sunday",

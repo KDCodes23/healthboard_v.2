@@ -1,31 +1,3 @@
-/**
- * User Context
- *
- * This context provides user authentication and profile management functionality.
- *
- * BACKEND INTEGRATION NOTES:
- * -----------------------------
- * 1. Authentication Flow:
- *    - Replace localStorage with JWT token management
- *    - Use HTTP-only cookies for secure token storage
- *    - Implement refresh token mechanism for longer sessions
- *
- * 2. Database Schema:
- *    - Users table: id, email, role, password_hash, created_at, last_login
- *    - Patient_profiles: user_id (FK), first_name, last_name, date_of_birth, gender, medical_conditions, avatar_url
- *    - Doctor_profiles: user_id (FK), first_name, last_name, specialty, hospital, bio, qualifications, avatar_url
- *    - Appointments: id, patient_id (FK), doctor_id (FK), date_time, status, meeting_link
- *    - Medical_records: id, patient_id (FK), doctor_id (FK), date, record_type, notes, attachments
- *
- * 3. API Endpoints:
- *    - POST /api/auth/login - Handle user login
- *    - POST /api/auth/register - Handle user registration
- *    - GET /api/auth/me - Get current user profile
- *    - PUT /api/auth/profile - Update user profile
- *    - POST /api/meetings/create - Create a new virtual meeting
- *    - GET /api/meetings/:id - Get meeting details
- */
-
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
@@ -67,40 +39,6 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
-// Mock user database
-// const MOCK_USERS_KEY = "health_horizon_users"
-// const CURRENT_USER_KEY = "health_horizon_current_user"
-
-// Helper functions for local storage
-// const getStoredUsers = (): Record<string, UserProfile & { password: string }> => {
-//   if (typeof window === "undefined") return {}
-
-//   const stored = localStorage.getItem(MOCK_USERS_KEY)
-//   return stored ? JSON.parse(stored) : {}
-// }
-
-// const storeUsers = (users: Record<string, UserProfile & { password: string }>) => {
-//   if (typeof window === "undefined") return
-//   localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users))
-// }
-
-// const getCurrentUser = (): UserProfile | null => {
-//   if (typeof window === "undefined") return null
-
-//   const stored = localStorage.getItem(CURRENT_USER_KEY)
-//   return stored ? JSON.parse(stored) : null
-// }
-
-// const storeCurrentUser = (user: UserProfile | null) => {
-//   if (typeof window === "undefined") return
-
-//   if (user) {
-//     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user))
-//   } else {
-//     localStorage.removeItem(CURRENT_USER_KEY)
-//   }
-// }
-
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -109,7 +47,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('authToken');
-      if (!token) return setLoading(false);
+      const userId = localStorage.getItem('userId');
+
+      if (!token || !userId) return setLoading(false);
 
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
@@ -123,6 +63,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
           const userData = await response.json();
           setUser(userData);
         }
+        else {
+          setError('Failed to fetch user');
+        }
       } catch (err) {
         console.error('Failed to fetch user:', err);
       } finally {
@@ -133,13 +76,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     fetchUser();
   }, []);
 
+
+  // Login function
   const login = async (
     email: string,
     password: string,
-    role: UserRole,
+    role: UserRole
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/authorize/login`, {
         method: 'POST',
@@ -153,17 +98,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await response.json();
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user); // Adjust based on your API response structure
-      return { success: true };
+      console.log('Backend Response:', data); // Log the entire response to check the data
 
+      // Store token and user ID in localStorage
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('userId', data.id);
+
+      setUser(data.user); // Assuming the backend returns user details
+
+      return { success: true };
     } catch (err) {
-      return { success: false, error: 'Network error' };
+      console.error('Login error:', err);
+      return { success: false, error: 'Network error - Could not reach server' };
     } finally {
       setLoading(false);
     }
   };
 
+  
   const register = async (
     userData: Partial<UserProfile> & { password: string },
   ): Promise<{ success: boolean; error?: string }> => {

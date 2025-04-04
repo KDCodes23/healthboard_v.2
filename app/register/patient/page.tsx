@@ -64,6 +64,7 @@ export default function PatientRegistrationPage() {
         role: "patient",
         password: formData.password,
         dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
         phoneNumber: formData.phone,
         medicalConditions: formData.medicalConditions,
         address: {

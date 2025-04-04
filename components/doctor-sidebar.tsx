@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Activity, Calendar, FileText, Home, MessageSquare, Settings, Users } from "lucide-react"
-import { SidebarProvider } from "@/components/ui/sidebar" 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,50 +18,40 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useUser } from "@/contexts/user-context"
+import { useEffect, useState } from "react"
 
-/**
- * DoctorSidebar Component
- *
- * This component renders the sidebar navigation for the doctor view.
- * It includes links to different sections of the doctor dashboard.
- */
 export function DoctorSidebar() {
   const pathname = usePathname()
   const { user } = useUser()
 
+  // State for doctor data (firstName, lastName)
+  const [doctorFields, setDoctorFields] = useState<{ firstName: string; lastName: string; specialization: string} | null>(null)
+
+  // Fetch doctor info after the component mounts
+  useEffect(() => {
+    const doctorId = localStorage.getItem('userId') // Assuming doctorId is stored in localStorage
+    if (doctorId) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/authorize/get-doctor/${doctorId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setDoctorFields({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            specialization: data.specialization,
+          })
+        })
+        .catch((error) => console.error("Error fetching doctor data:", error))
+    }
+  }, [])
+
   // Navigation items for the doctor sidebar
   const navItems = [
-    {
-      title: "Dashboard",
-      href: "/dashboard/doctor",
-      icon: Home,
-      exact: true,
-    },
-    {
-      title: "Patients",
-      href: "/dashboard/doctor/patients",
-      icon: Users,
-    },
-    {
-      title: "Appointments",
-      href: "/dashboard/doctor/appointments",
-      icon: Calendar,
-    },
-    {
-      title: "Medical Records",
-      href: "/dashboard/doctor/records",
-      icon: FileText,
-    },
-    {
-      title: "Messages",
-      href: "/dashboard/doctor/messages",
-      icon: MessageSquare,
-    },
-    {
-      title: "AI Chat",
-      href: "/dashboard/doctor/chat",
-      icon: MessageSquare,
-    },
+    { title: "Dashboard", href: "/dashboard/doctor", icon: Home, exact: true },
+    { title: "Patients", href: "/dashboard/doctor/patients", icon: Users },
+    { title: "Appointments", href: "/dashboard/doctor/appointments", icon: Calendar },
+    { title: "Medical Records", href: "/dashboard/doctor/records", icon: FileText },
+    { title: "Messages", href: "/dashboard/doctor/messages", icon: MessageSquare },
+    { title: "AI Chat", href: "/dashboard/doctor/chat", icon: MessageSquare },
   ]
 
   // Check if a navigation item is active
@@ -126,10 +115,13 @@ export function DoctorSidebar() {
             </Avatar>
           </Link>
           <div className="flex-1">
+            {/* Render Loading Spinner if doctorName is not yet fetched */}
             <p className="text-lg font-medium shimmer">
-              Dr. {user?.firstName} {user?.lastName || "Will Smith"}
+              {doctorFields ? `Dr. ${doctorFields.firstName} ${doctorFields.lastName}` : "Loading..."}
             </p>
-            <p className="text-base text-muted-foreground">Dermatologist</p>
+            <p className="text-base text-muted-foreground">
+              {doctorFields?.specialization ? doctorFields.specialization : "Specialization not available"}
+            </p>
           </div>
           <Link href="/dashboard/doctor/settings">
             <Button variant="ghost" size="icon" className="hover-glow hover:bg-primary/10 transition-all duration-300">
@@ -142,4 +134,3 @@ export function DoctorSidebar() {
     </Sidebar>
   )
 }
-

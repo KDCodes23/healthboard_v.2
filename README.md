@@ -13,11 +13,11 @@ A modern health tracking dashboard designed to help users monitor and visualize 
 
 ## 🛠️ Tech Stack
 
-> *(Update this with actual stack)*
+-🎨 **Frontend**: Next.js ⚛️ / TypeScript 🟦
 
-- **Frontend:** Kotlin (Jetpack Compose) / Android
-- **Backend:** Firebase / REST API
-- **Architecture:** MVVM + LiveData + ViewModel
+-💅 **Styles**: Framer Motion 🎥 / Lucide Icons 💠 / V0 + Aceternity UI 🎯
+
+-🧠 **Backend**: ASP.NET API ⚙️ / SQL 🗃️ / Context Database 📚
 
 ## 📦 Getting Started
 
@@ -28,31 +28,12 @@ git clone https://github.com/KDCodes23/healthboard_v.2.git
 cd healthboard_v.2
 ```
 
-Installation  Frontend Commands
-```bash
-npm init -y-force
-npm install --legacy-peer-deps
-npm install framer-motion @types/framer-motion --legacy-peer-deps
-npx next dev --turbo
-```
-
-To Run the Project
-```bash
-npm run dev
-```
+Installation
 
 If you're using API keys or private configs, create a local local.properties or .env file with:
 
-
-<details>
-  <summary>Click to reveal env file details </summary>
-NEXT_PUBLIC_API_URL=http://localhost:5214/api
-OPENAI_API_KEY= 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
-NEXT_PUBLIC_EMAIL_API_KEY=xWArwyRYnbZozcubKOPTJ
-OPENAI_ORG_ID=org-YVoc2aaPFF4j8DjkRikyybeO
-OPENAI_PROJECT_ID=proj_KmdC853gAJQCEBt52AcFM3x9
-OPENAI_BASE_URL=https://api.openai.com/v1/chat/completions
-</details>
+API_KEY=your-api-key
+DB_URL=your-database-url
 
 🤝 Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you’d like to change.
